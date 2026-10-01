@@ -4,30 +4,17 @@ import {
   Controls,
   ReactFlow,
   useEdgesState,
-  useNodesState,
   type Connection,
   type Edge,
-  type Node,
+  type NodeChange,
 } from '@xyflow/react'
 
 import '@xyflow/react/dist/style.css'
+
+import { useAppDispatch, useAppSelector } from '../../../app/hooks'
+import { nodePositionChanged } from '../editorSlice'
 import { ProcessNode } from '../nodes/ProcessNode'
 
-
-const initialNodes: Node[] = [
-  {
-    id: '1',
-    type: 'process',
-    position: { x: 100, y: 100 },
-    data: { label: 'User Signup' },
-  },
-  {
-    id: '2',
-    type: 'process',
-    position: { x: 400, y: 250 },
-    data: { label: 'Email verified?' },
-  },
-]
 
 const initialEdges: Edge[] = [
   {
@@ -42,8 +29,28 @@ const nodeTypes = {
 }
 
 export function EditorCanvas() {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
+  const dispatch = useAppDispatch()
+
+  const nodes = useAppSelector((state) => state.editor.nodes)
+
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
+
+  function handleNodesChange(changes: NodeChange[]) {
+    for (const change of changes) {
+      if (
+        change.type === 'position' &&
+        change.position &&
+        change.dragging !== undefined
+      ) {
+        dispatch(
+          nodePositionChanged({
+            id: change.id,
+            position: change.position,
+          }),
+        )
+      }
+    }
+  }
 
   function handleConnect(connection: Connection) {
     setEdges((currentEdges) => addEdge(connection, currentEdges))
@@ -54,7 +61,7 @@ export function EditorCanvas() {
       nodes={nodes}
       edges={edges}
       nodeTypes={nodeTypes}
-      onNodesChange={onNodesChange}
+      onNodesChange={handleNodesChange}
       onEdgesChange={onEdgesChange}
       onConnect={handleConnect}
       fitView
