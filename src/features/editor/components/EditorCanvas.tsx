@@ -1,28 +1,23 @@
 import {
-  addEdge,
   Background,
   Controls,
   ReactFlow,
-  useEdgesState,
   type Connection,
-  type Edge,
+  type EdgeChange,
   type NodeChange,
 } from '@xyflow/react'
 
 import '@xyflow/react/dist/style.css'
 
 import { useAppDispatch, useAppSelector } from '../../../app/hooks'
-import { nodePositionChanged } from '../editorSlice'
+import {
+  edgeAdded,
+  edgeDeleted,
+  nodePositionChanged,
+  nodeSelectionChanged,
+} from '../editorSlice'
 import { ProcessNode } from '../nodes/ProcessNode'
 
-
-const initialEdges: Edge[] = [
-  {
-    id: '1-2',
-    source: '1',
-    target: '2',
-  },
-]
 
 const nodeTypes = {
   process: ProcessNode,
@@ -32,16 +27,20 @@ export function EditorCanvas() {
   const dispatch = useAppDispatch()
 
   const nodes = useAppSelector((state) => state.editor.nodes)
+  const edges = useAppSelector((state) => state.editor.edges)
+  const selectedNodeIds = useAppSelector(
+    (state) => state.editor.selectedNodeIds,
+  )
 
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
+  const canvasNodes = nodes.map((node) => ({
+    ...node,
+    selected: selectedNodeIds.includes(node.id),
+  }))
+
 
   function handleNodesChange(changes: NodeChange[]) {
     for (const change of changes) {
-      if (
-        change.type === 'position' &&
-        change.position &&
-        change.dragging !== undefined
-      ) {
+      if (change.type === 'position' && change.position) {
         dispatch(
           nodePositionChanged({
             id: change.id,
@@ -49,20 +48,48 @@ export function EditorCanvas() {
           }),
         )
       }
+
+      if (change.type === 'select') {
+        dispatch(
+          nodeSelectionChanged({
+            id: change.id,
+            selected: change.selected,
+          }),
+        )
+      }
     }
   }
 
   function handleConnect(connection: Connection) {
-    setEdges((currentEdges) => addEdge(connection, currentEdges))
+    if (!connection.source || !connection.target) {
+      return
+    }
+
+    dispatch(
+      edgeAdded({
+        id: crypto.randomUUID(),
+        source: connection.source,
+        target: connection.target,
+      }),
+    )
   }
+
+  function handleEdgesChange(changes: EdgeChange[]) {
+    for (const change of changes) {
+      if (change.type === 'remove') {
+        dispatch(edgeDeleted(change.id))
+      }
+    }
+  }
+  
 
   return (
     <ReactFlow
-      nodes={nodes}
+      nodes={canvasNodes}
       edges={edges}
       nodeTypes={nodeTypes}
       onNodesChange={handleNodesChange}
-      onEdgesChange={onEdgesChange}
+      onEdgesChange={handleEdgesChange}
       onConnect={handleConnect}
       fitView
     >

@@ -4,9 +4,11 @@ import type { FlowEdge, FlowNode } from './types'
 type EditorState = {
   nodes: FlowNode[]
   edges: FlowEdge[]
+  selectedNodeIds: string[]
 }
 
 const initialState: EditorState = {
+  selectedNodeIds: [],
   nodes: [
     {
       id: '1',
@@ -53,9 +55,42 @@ const editorSlice = createSlice({
 
       node.position = action.payload.position
     },
+    nodeSelectionChanged(
+      state,
+      action: PayloadAction<{
+        id: string
+        selected: boolean
+      }>,
+    ) {
+      const { id, selected } = action.payload
+
+      if (selected) {
+        if (!state.selectedNodeIds.includes(id)) {
+          state.selectedNodeIds.push(id)
+        }
+      } else {
+        state.selectedNodeIds = state.selectedNodeIds.filter(
+          (nodeId) => nodeId !== id,
+        )
+      }
+    },
+    edgeAdded(
+      state,
+      action: PayloadAction<FlowEdge>,
+    ) {
+      state.edges.push(action.payload)
+    },
+    edgeDeleted(
+      state,
+      action: PayloadAction<string>,
+    ) {
+      state.edges = state.edges.filter(
+        (edge) => edge.id !== action.payload,
+      )
+    },
   },
 })
 
-export const { nodePositionChanged } = editorSlice.actions
+export const { nodePositionChanged, nodeSelectionChanged, edgeAdded, edgeDeleted } = editorSlice.actions
 
 export default editorSlice.reducer
