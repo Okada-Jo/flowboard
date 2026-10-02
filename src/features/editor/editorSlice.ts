@@ -88,9 +88,52 @@ const editorSlice = createSlice({
         (edge) => edge.id !== action.payload,
       )
     },
+    nodeAdded(
+      state,
+      action: PayloadAction<FlowNode>,
+    ) {
+      state.nodes.push(action.payload)
+    },
+    nodeDeleted(
+      state,
+      action: PayloadAction<string>,
+    ) {
+      const nodeId = action.payload
+
+      state.nodes = state.nodes.filter(
+        (node) => node.id !== nodeId,
+      )
+
+      state.edges = state.edges.filter(
+        (edge) =>
+          edge.source !== nodeId &&
+          edge.target !== nodeId,
+      )
+
+      state.selectedNodeIds = state.selectedNodeIds.filter(
+        (id) => id !== nodeId,
+      )
+    },
+    nodeLabelChanged(
+      state,
+      action: PayloadAction<{
+        id: string
+        label: string
+      }>,
+    ) {
+      const node = state.nodes.find(
+        (node) => node.id === action.payload.id,
+      )
+
+      if (!node) {
+        return
+      }
+
+      node.data.label = action.payload.label
+    },
   },
 })
 
-export const { nodePositionChanged, nodeSelectionChanged, edgeAdded, edgeDeleted } = editorSlice.actions
+export const { nodePositionChanged, nodeLabelChanged, nodeDeleted, nodeSelectionChanged, edgeAdded, edgeDeleted, nodeAdded } = editorSlice.actions
 
 export default editorSlice.reducer
