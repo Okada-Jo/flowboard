@@ -1,14 +1,16 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
-import type { FlowEdge, FlowNode } from './types'
+import type { DiagramDocument, FlowEdge, FlowNode } from './types'
 
 type EditorState = {
   nodes: FlowNode[]
   edges: FlowEdge[]
   selectedNodeIds: string[]
+  historyTransactionActive: boolean
 }
 
 const initialState: EditorState = {
   selectedNodeIds: [],
+  historyTransactionActive: false,
   nodes: [
     {
       id: '1',
@@ -131,9 +133,16 @@ const editorSlice = createSlice({
 
       node.data.label = action.payload.label
     },
+    historyTransactionStarted(state) {
+      state.historyTransactionActive = true
+    },
+
+    historyTransactionCommitted(state) {
+      state.historyTransactionActive = false
+    },
   },
 })
 
-export const { nodePositionChanged, nodeLabelChanged, nodeDeleted, nodeSelectionChanged, edgeAdded, edgeDeleted, nodeAdded } = editorSlice.actions
+export const { nodePositionChanged, historyTransactionStarted, historyTransactionCommitted, nodeLabelChanged, nodeDeleted, nodeSelectionChanged, edgeAdded, edgeDeleted, nodeAdded } = editorSlice.actions
 
 export default editorSlice.reducer

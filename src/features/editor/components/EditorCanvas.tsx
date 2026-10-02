@@ -1,10 +1,11 @@
+import { useRef } from 'react'
 import {
   Background,
   Controls,
-  ReactFlow,
   Panel,
-  useReactFlow,
+  ReactFlow,
   ReactFlowProvider,
+  useReactFlow,
   type Connection,
   type EdgeChange,
   type NodeChange,
@@ -16,19 +17,22 @@ import { useAppDispatch, useAppSelector } from '../../../app/hooks'
 import {
   edgeAdded,
   edgeDeleted,
-  nodePositionChanged,
-  nodeSelectionChanged,
+  historyTransactionCommitted,
+  historyTransactionStarted,
   nodeAdded,
   nodeDeleted,
+  nodePositionChanged,
+  nodeSelectionChanged,
 } from '../editorSlice'
 import { ProcessNode } from '../nodes/ProcessNode'
-
 
 const nodeTypes = {
   process: ProcessNode,
 }
 
 function EditorCanvasInner() {
+  const isDraggingRef = useRef(false)
+
   const dispatch = useAppDispatch()
   const { screenToFlowPosition } = useReactFlow()
 
@@ -43,16 +47,25 @@ function EditorCanvasInner() {
     selected: selectedNodeIds.includes(node.id),
   }))
 
-
   function handleNodesChange(changes: NodeChange[]) {
     for (const change of changes) {
       if (change.type === 'position' && change.position) {
+        if (change.dragging && !isDraggingRef.current) {
+          isDraggingRef.current = true
+          dispatch(historyTransactionStarted())
+        }
+
         dispatch(
           nodePositionChanged({
             id: change.id,
             position: change.position,
           }),
         )
+
+        if (change.dragging === false && isDraggingRef.current) {
+          isDraggingRef.current = false
+          dispatch(historyTransactionCommitted())
+        }
       }
 
       if (change.type === 'select') {
@@ -62,6 +75,18 @@ function EditorCanvasInner() {
             selected: change.selected,
           }),
         )
+      }
+
+      if (change.type === 'remove') {
+        dispatch(nodeDeleted(change.id))
+      }
+    }
+  }
+
+  function handleEdgesChange(changes: EdgeChange[]) {
+    for (const change of changes) {
+      if (change.type === 'remove') {
+        dispatch(edgeDeleted(change.id))
       }
     }
   }
@@ -78,17 +103,6 @@ function EditorCanvasInner() {
         target: connection.target,
       }),
     )
-  }
-
-  function handleEdgesChange(changes: EdgeChange[]) {
-    for (const change of changes) {
-      if (change.type === 'remove') {
-        dispatch(edgeDeleted(change.id))
-      }
-      if (change.type === 'remove') {
-        dispatch(nodeDeleted(change.id))
-      }
-    }
   }
 
   function handleAddProcessNode() {
@@ -108,7 +122,6 @@ function EditorCanvasInner() {
       }),
     )
   }
-  
 
   return (
     <ReactFlow
@@ -122,6 +135,7 @@ function EditorCanvasInner() {
     >
       <Background />
       <Controls />
+
       <Panel position="top-left">
         <button
           type="button"

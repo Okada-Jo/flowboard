@@ -22,3 +22,8 @@ export type FlowEdge = {
   source: string
   target: string
 }
+
+export type DiagramDocument = {
+  nodes: FlowNode[]
+  edges: FlowEdge[]
+}
