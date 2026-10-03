@@ -1,5 +1,5 @@
 import { createSlice, current, type PayloadAction } from '@reduxjs/toolkit'
-import type { DiagramDocument, FlowEdge, FlowNode } from './types'
+import type { DiagramDocument, FlowClipboard, FlowEdge, FlowNode } from './types'
 
 type EditorState = {
   nodes: FlowNode[]
@@ -10,6 +10,17 @@ type EditorState = {
   past: DiagramDocument[]
   future: DiagramDocument[]
   selectedEdgeIds: string[]
+  clipboard: FlowClipboard | null
+}
+
+type DuplicateSelectionPayload = {
+  nodeIds: Record<string, string>
+  edgeIds: Record<string, string>
+}
+
+type PasteClipboardPayload = {
+  nodeIds: Record<string, string>
+  edgeIds: Record<string, string>
 }
 
 const initialState: EditorState = {
@@ -19,6 +30,7 @@ const initialState: EditorState = {
   past: [],
   future: [],
   selectedEdgeIds: [],
+  clipboard: null,
   nodes: [
     {
       id: '1',
@@ -271,9 +283,103 @@ const editorSlice = createSlice({
       state.selectedNodeIds = []
       state.selectedEdgeIds = []
     },
-      },
+    duplicateSelection(
+      state,
+      action: PayloadAction<DuplicateSelectionPayload>,
+    ) {
+      if (state.selectedNodeIds.length === 0) {
+        return
+      }
+
+      recordHistory(state)
+
+      const selectedIds = new Set(state.selectedNodeIds)
+
+      const duplicatedNodes = state.nodes
+        .filter((node) => selectedIds.has(node.id))
+        .map((node) => ({
+          ...node,
+          id: action.payload.nodeIds[node.id],
+          position: {
+            x: node.position.x + 40,
+            y: node.position.y + 40,
+          },
+        }))
+
+      const duplicatedEdges = state.edges
+        .filter(
+          (edge) =>
+            selectedIds.has(edge.source) &&
+            selectedIds.has(edge.target),
+        )
+        .map((edge) => ({
+          ...edge,
+          id: action.payload.edgeIds[edge.id],
+          source: action.payload.nodeIds[edge.source],
+          target: action.payload.nodeIds[edge.target],
+        }))
+
+      state.nodes.push(...duplicatedNodes)
+      state.edges.push(...duplicatedEdges)
+
+      state.selectedNodeIds = duplicatedNodes.map(
+        (node) => node.id,
+      )
+      state.selectedEdgeIds = []
+    },
+    selectionCopied(state) {
+      if (state.selectedNodeIds.length === 0) {
+        return
+      }
+
+      const selectedIds = new Set(state.selectedNodeIds)
+
+      state.clipboard = {
+        nodes: state.nodes.filter((node) =>
+          selectedIds.has(node.id),
+        ),
+        edges: state.edges.filter(
+          (edge) =>
+            selectedIds.has(edge.source) &&
+            selectedIds.has(edge.target),
+        ),
+      }
+    },
+    clipboardPasted(
+      state,
+      action: PayloadAction<PasteClipboardPayload>,
+    ) {
+      if (!state.clipboard || state.clipboard.nodes.length === 0) {
+        return
+      }
+
+      recordHistory(state)
+
+      const pastedNodes = state.clipboard.nodes.map((node) => ({
+        ...node,
+        id: action.payload.nodeIds[node.id],
+        position: {
+          x: node.position.x + 40,
+          y: node.position.y + 40,
+        },
+      }))
+
+      const pastedEdges = state.clipboard.edges.map((edge) => ({
+        ...edge,
+        id: action.payload.edgeIds[edge.id],
+        source: action.payload.nodeIds[edge.source],
+        target: action.payload.nodeIds[edge.target],
+      }))
+
+      state.nodes.push(...pastedNodes)
+      state.edges.push(...pastedEdges)
+
+      state.selectedNodeIds = pastedNodes.map((node) => node.id)
+      state.selectedEdgeIds = []
+    },
+  },
 })
 
-export const { undo, edgeSelectionChanged, selectionDeleted, redo, nodePositionChanged, historyTransactionStarted, historyTransactionCommitted, nodeLabelChanged, nodeDeleted, nodeSelectionChanged, edgeAdded, edgeDeleted, nodeAdded } = editorSlice.actions
+export const { undo, selectionCopied, clipboardPasted, duplicateSelection, edgeSelectionChanged, selectionDeleted, redo, nodePositionChanged, historyTransactionStarted, historyTransactionCommitted, nodeLabelChanged, nodeDeleted, nodeSelectionChanged, edgeAdded, edgeDeleted, nodeAdded } = editorSlice.actions
 
 export default editorSlice.reducer

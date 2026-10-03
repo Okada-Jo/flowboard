@@ -27,3 +27,8 @@ export type DiagramDocument = {
   nodes: FlowNode[]
   edges: FlowEdge[]
 }
+
+export type FlowClipboard = {
+  nodes: FlowNode[]
+  edges: FlowEdge[]
+}
