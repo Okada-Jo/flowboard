@@ -5,12 +5,11 @@ type EditorState = {
   nodes: FlowNode[]
   edges: FlowEdge[]
   selectedNodeIds: string[]
-
   historyTransactionActive: boolean
   transactionStart: DiagramDocument | null
-
   past: DiagramDocument[]
   future: DiagramDocument[]
+  selectedEdgeIds: string[]
 }
 
 const initialState: EditorState = {
@@ -19,6 +18,7 @@ const initialState: EditorState = {
   transactionStart: null,
   past: [],
   future: [],
+  selectedEdgeIds: [],
   nodes: [
     {
       id: '1',
@@ -122,6 +122,10 @@ const editorSlice = createSlice({
       state.edges = state.edges.filter(
         (edge) => edge.id !== action.payload,
       )
+
+      state.selectedEdgeIds = state.selectedEdgeIds.filter(
+        (id) => id !== action.payload,
+      )
     },
     nodeAdded(
       state,
@@ -208,6 +212,7 @@ const editorSlice = createSlice({
       state.edges = previous.edges
 
       state.selectedNodeIds = []
+      state.selectedEdgeIds = []
     },
     redo(state) {
       const next = state.future.pop()
@@ -220,12 +225,55 @@ const editorSlice = createSlice({
 
       state.nodes = next.nodes
       state.edges = next.edges
+      state.selectedNodeIds = []
+      state.selectedEdgeIds = []
+    },
+    edgeSelectionChanged(
+      state,
+      action: PayloadAction<{
+        id: string
+        selected: boolean
+      }>,
+    ) {
+      const { id, selected } = action.payload
+
+      if (selected) {
+        if (!state.selectedEdgeIds.includes(id)) {
+          state.selectedEdgeIds.push(id)
+        }
+      } else {
+        state.selectedEdgeIds = state.selectedEdgeIds.filter(
+          (edgeId) => edgeId !== id,
+        )
+      }
+    },
+    selectionDeleted(state) {
+      const selectedNodeIds = new Set(state.selectedNodeIds)
+      const selectedEdgeIds = new Set(state.selectedEdgeIds)
+
+      if (selectedNodeIds.size === 0 && selectedEdgeIds.size === 0) {
+        return
+      }
+
+      recordHistory(state)
+
+      state.nodes = state.nodes.filter(
+        (node) => !selectedNodeIds.has(node.id),
+      )
+
+      state.edges = state.edges.filter(
+        (edge) =>
+          !selectedEdgeIds.has(edge.id) &&
+          !selectedNodeIds.has(edge.source) &&
+          !selectedNodeIds.has(edge.target),
+      )
 
       state.selectedNodeIds = []
+      state.selectedEdgeIds = []
     },
-  },
+      },
 })
 
-export const { undo, redo, nodePositionChanged, historyTransactionStarted, historyTransactionCommitted, nodeLabelChanged, nodeDeleted, nodeSelectionChanged, edgeAdded, edgeDeleted, nodeAdded } = editorSlice.actions
+export const { undo, edgeSelectionChanged, selectionDeleted, redo, nodePositionChanged, historyTransactionStarted, historyTransactionCommitted, nodeLabelChanged, nodeDeleted, nodeSelectionChanged, edgeAdded, edgeDeleted, nodeAdded } = editorSlice.actions
 
 export default editorSlice.reducer

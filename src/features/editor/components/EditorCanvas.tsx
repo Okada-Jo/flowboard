@@ -17,6 +17,7 @@ import { useAppDispatch, useAppSelector } from '../../../app/hooks'
 import {
   edgeAdded,
   edgeDeleted,
+  edgeSelectionChanged,
   historyTransactionCommitted,
   historyTransactionStarted,
   nodeAdded,
@@ -27,6 +28,7 @@ import {
   undo,
 } from '../editorSlice'
 import { ProcessNode } from '../nodes/ProcessNode'
+import { useEditorShortcuts } from '../shortcuts/useEditorShortcuts'
 
 const nodeTypes = {
   process: ProcessNode,
@@ -34,6 +36,8 @@ const nodeTypes = {
 
 function EditorCanvasInner() {
   const isDraggingRef = useRef(false)
+
+  useEditorShortcuts()
 
   const dispatch = useAppDispatch()
   const { screenToFlowPosition } = useReactFlow()
@@ -43,10 +47,18 @@ function EditorCanvasInner() {
   const selectedNodeIds = useAppSelector(
     (state) => state.editor.selectedNodeIds,
   )
+  const selectedEdgeIds = useAppSelector(
+    (state) => state.editor.selectedEdgeIds,
+  )
 
   const canvasNodes = nodes.map((node) => ({
     ...node,
     selected: selectedNodeIds.includes(node.id),
+  }))
+
+  const canvasEdges = edges.map((edge) => ({
+    ...edge,
+    selected: selectedEdgeIds.includes(edge.id),
   }))
 
   function handleNodesChange(changes: NodeChange[]) {
@@ -85,13 +97,22 @@ function EditorCanvasInner() {
     }
   }
 
-  function handleEdgesChange(changes: EdgeChange[]) {
-    for (const change of changes) {
-      if (change.type === 'remove') {
-        dispatch(edgeDeleted(change.id))
+    function handleEdgesChange(changes: EdgeChange[]) {
+      for (const change of changes) {
+        if (change.type === 'select') {
+          dispatch(
+            edgeSelectionChanged({
+              id: change.id,
+              selected: change.selected,
+            }),
+          )
+        }
+
+        if (change.type === 'remove') {
+          dispatch(edgeDeleted(change.id))
+        }
       }
     }
-  }
 
   function handleConnect(connection: Connection) {
     if (!connection.source || !connection.target) {
@@ -128,7 +149,7 @@ function EditorCanvasInner() {
   return (
     <ReactFlow
       nodes={canvasNodes}
-      edges={edges}
+      edges={canvasEdges}
       nodeTypes={nodeTypes}
       onNodesChange={handleNodesChange}
       onEdgesChange={handleEdgesChange}
