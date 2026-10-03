@@ -1,16 +1,24 @@
-import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
+import { createSlice, current, type PayloadAction } from '@reduxjs/toolkit'
 import type { DiagramDocument, FlowEdge, FlowNode } from './types'
 
 type EditorState = {
   nodes: FlowNode[]
   edges: FlowEdge[]
   selectedNodeIds: string[]
+
   historyTransactionActive: boolean
+  transactionStart: DiagramDocument | null
+
+  past: DiagramDocument[]
+  future: DiagramDocument[]
 }
 
 const initialState: EditorState = {
   selectedNodeIds: [],
   historyTransactionActive: false,
+  transactionStart: null,
+  past: [],
+  future: [],
   nodes: [
     {
       id: '1',
@@ -36,6 +44,24 @@ const initialState: EditorState = {
       target: '2',
     },
   ],
+}
+
+function snapshotDocument(state: EditorState): DiagramDocument {
+  const snapshot = current(state)
+
+  return {
+    nodes: snapshot.nodes,
+    edges: snapshot.edges,
+  }
+}
+
+function recordHistory(state: EditorState) {
+  if (state.historyTransactionActive) {
+    return
+  }
+
+  state.past.push(snapshotDocument(state))
+  state.future = []
 }
 
 const editorSlice = createSlice({
@@ -80,12 +106,19 @@ const editorSlice = createSlice({
       state,
       action: PayloadAction<FlowEdge>,
     ) {
+      recordHistory(state)
       state.edges.push(action.payload)
     },
     edgeDeleted(
       state,
       action: PayloadAction<string>,
     ) {
+      if (!state.edges.some((edge) => edge.id === action.payload)) {
+        return
+      }
+
+      recordHistory(state)
+
       state.edges = state.edges.filter(
         (edge) => edge.id !== action.payload,
       )
@@ -94,6 +127,7 @@ const editorSlice = createSlice({
       state,
       action: PayloadAction<FlowNode>,
     ) {
+      recordHistory(state)
       state.nodes.push(action.payload)
     },
     nodeDeleted(
@@ -101,6 +135,12 @@ const editorSlice = createSlice({
       action: PayloadAction<string>,
     ) {
       const nodeId = action.payload
+
+      if (!state.nodes.some((node) => node.id === nodeId)) {
+        return
+      }
+
+      recordHistory(state)
 
       state.nodes = state.nodes.filter(
         (node) => node.id !== nodeId,
@@ -127,22 +167,65 @@ const editorSlice = createSlice({
         (node) => node.id === action.payload.id,
       )
 
-      if (!node) {
+      if (!node || node.data.label === action.payload.label) {
         return
       }
+
+      recordHistory(state)
 
       node.data.label = action.payload.label
     },
     historyTransactionStarted(state) {
+      if (state.historyTransactionActive) {
+        return
+      }
+
       state.historyTransactionActive = true
+      state.transactionStart = snapshotDocument(state)
     },
 
     historyTransactionCommitted(state) {
+      if (!state.historyTransactionActive || !state.transactionStart) {
+        return
+      }
+
+      state.past.push(state.transactionStart)
+      state.future = []
+
       state.historyTransactionActive = false
+      state.transactionStart = null
+    },
+    undo(state) {
+      const previous = state.past.pop()
+
+      if (!previous) {
+        return
+      }
+
+      state.future.push(snapshotDocument(state))
+
+      state.nodes = previous.nodes
+      state.edges = previous.edges
+
+      state.selectedNodeIds = []
+    },
+    redo(state) {
+      const next = state.future.pop()
+
+      if (!next) {
+        return
+      }
+
+      state.past.push(snapshotDocument(state))
+
+      state.nodes = next.nodes
+      state.edges = next.edges
+
+      state.selectedNodeIds = []
     },
   },
 })
 
-export const { nodePositionChanged, historyTransactionStarted, historyTransactionCommitted, nodeLabelChanged, nodeDeleted, nodeSelectionChanged, edgeAdded, edgeDeleted, nodeAdded } = editorSlice.actions
+export const { undo, redo, nodePositionChanged, historyTransactionStarted, historyTransactionCommitted, nodeLabelChanged, nodeDeleted, nodeSelectionChanged, edgeAdded, edgeDeleted, nodeAdded } = editorSlice.actions
 
 export default editorSlice.reducer
