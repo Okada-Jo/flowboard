@@ -1,8 +1,4 @@
-export type FlowNodeType =
-  | 'process'
-  | 'decision'
-  | 'input-output'
-  | 'note'
+export type FlowNodeType = 'process' | 'decision' | 'input-output' | 'note'
 
 export type FlowNodeData = {
   label: string

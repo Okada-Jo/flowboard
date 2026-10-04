@@ -1,5 +1,10 @@
 import { createSlice, current, type PayloadAction } from '@reduxjs/toolkit'
-import type { DiagramDocument, FlowClipboard, FlowEdge, FlowNode } from './types'
+import type {
+  DiagramDocument,
+  FlowClipboard,
+  FlowEdge,
+  FlowNode,
+} from './types'
 
 type EditorState = {
   nodes: FlowNode[]
@@ -91,42 +96,28 @@ const editorSlice = createSlice({
         )
       }
     },
-    edgeAdded(
-      state,
-      action: PayloadAction<FlowEdge>,
-    ) {
+    edgeAdded(state, action: PayloadAction<FlowEdge>) {
       recordHistory(state)
       state.edges.push(action.payload)
     },
-    edgeDeleted(
-      state,
-      action: PayloadAction<string>,
-    ) {
+    edgeDeleted(state, action: PayloadAction<string>) {
       if (!state.edges.some((edge) => edge.id === action.payload)) {
         return
       }
 
       recordHistory(state)
 
-      state.edges = state.edges.filter(
-        (edge) => edge.id !== action.payload,
-      )
+      state.edges = state.edges.filter((edge) => edge.id !== action.payload)
 
       state.selectedEdgeIds = state.selectedEdgeIds.filter(
         (id) => id !== action.payload,
       )
     },
-    nodeAdded(
-      state,
-      action: PayloadAction<FlowNode>,
-    ) {
+    nodeAdded(state, action: PayloadAction<FlowNode>) {
       recordHistory(state)
       state.nodes.push(action.payload)
     },
-    nodeDeleted(
-      state,
-      action: PayloadAction<string>,
-    ) {
+    nodeDeleted(state, action: PayloadAction<string>) {
       const nodeId = action.payload
 
       if (!state.nodes.some((node) => node.id === nodeId)) {
@@ -135,14 +126,10 @@ const editorSlice = createSlice({
 
       recordHistory(state)
 
-      state.nodes = state.nodes.filter(
-        (node) => node.id !== nodeId,
-      )
+      state.nodes = state.nodes.filter((node) => node.id !== nodeId)
 
       state.edges = state.edges.filter(
-        (edge) =>
-          edge.source !== nodeId &&
-          edge.target !== nodeId,
+        (edge) => edge.source !== nodeId && edge.target !== nodeId,
       )
 
       state.selectedNodeIds = state.selectedNodeIds.filter(
@@ -156,9 +143,7 @@ const editorSlice = createSlice({
         label: string
       }>,
     ) {
-      const node = state.nodes.find(
-        (node) => node.id === action.payload.id,
-      )
+      const node = state.nodes.find((node) => node.id === action.payload.id)
 
       if (!node || node.data.label === action.payload.label) {
         return
@@ -246,9 +231,7 @@ const editorSlice = createSlice({
 
       recordHistory(state)
 
-      state.nodes = state.nodes.filter(
-        (node) => !selectedNodeIds.has(node.id),
-      )
+      state.nodes = state.nodes.filter((node) => !selectedNodeIds.has(node.id))
 
       state.edges = state.edges.filter(
         (edge) =>
@@ -286,8 +269,7 @@ const editorSlice = createSlice({
       const duplicatedEdges = state.edges
         .filter(
           (edge) =>
-            selectedIds.has(edge.source) &&
-            selectedIds.has(edge.target),
+            selectedIds.has(edge.source) && selectedIds.has(edge.target),
         )
         .map((edge) => ({
           ...edge,
@@ -299,9 +281,7 @@ const editorSlice = createSlice({
       state.nodes.push(...duplicatedNodes)
       state.edges.push(...duplicatedEdges)
 
-      state.selectedNodeIds = duplicatedNodes.map(
-        (node) => node.id,
-      )
+      state.selectedNodeIds = duplicatedNodes.map((node) => node.id)
       state.selectedEdgeIds = []
     },
     selectionCopied(state) {
@@ -312,20 +292,14 @@ const editorSlice = createSlice({
       const selectedIds = new Set(state.selectedNodeIds)
 
       state.clipboard = {
-        nodes: state.nodes.filter((node) =>
-          selectedIds.has(node.id),
-        ),
+        nodes: state.nodes.filter((node) => selectedIds.has(node.id)),
         edges: state.edges.filter(
           (edge) =>
-            selectedIds.has(edge.source) &&
-            selectedIds.has(edge.target),
+            selectedIds.has(edge.source) && selectedIds.has(edge.target),
         ),
       }
     },
-    clipboardPasted(
-      state,
-      action: PayloadAction<PasteClipboardPayload>,
-    ) {
+    clipboardPasted(state, action: PayloadAction<PasteClipboardPayload>) {
       if (!state.clipboard || state.clipboard.nodes.length === 0) {
         return
       }
@@ -354,10 +328,7 @@ const editorSlice = createSlice({
       state.selectedNodeIds = pastedNodes.map((node) => node.id)
       state.selectedEdgeIds = []
     },
-    boardLoaded(
-      state,
-      action: PayloadAction<DiagramDocument>,
-    ) {
+    boardLoaded(state, action: PayloadAction<DiagramDocument>) {
       state.nodes = action.payload.nodes
       state.edges = action.payload.edges
 
@@ -373,6 +344,24 @@ const editorSlice = createSlice({
   },
 })
 
-export const { undo, boardLoaded, selectionCopied, clipboardPasted, duplicateSelection, edgeSelectionChanged, selectionDeleted, redo, nodePositionChanged, historyTransactionStarted, historyTransactionCommitted, nodeLabelChanged, nodeDeleted, nodeSelectionChanged, edgeAdded, edgeDeleted, nodeAdded } = editorSlice.actions
+export const {
+  undo,
+  boardLoaded,
+  selectionCopied,
+  clipboardPasted,
+  duplicateSelection,
+  edgeSelectionChanged,
+  selectionDeleted,
+  redo,
+  nodePositionChanged,
+  historyTransactionStarted,
+  historyTransactionCommitted,
+  nodeLabelChanged,
+  nodeDeleted,
+  nodeSelectionChanged,
+  edgeAdded,
+  edgeDeleted,
+  nodeAdded,
+} = editorSlice.actions
 
 export default editorSlice.reducer

@@ -2,7 +2,6 @@ import { useEffect } from 'react'
 import { useAppSelector } from '../app/hooks'
 import { saveBoard } from './boardsRepository'
 
-
 type UseBoardAutosaveOptions = {
   boardId: string | undefined
   enabled: boolean

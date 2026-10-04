@@ -33,7 +33,6 @@ export function BoardsPage() {
     navigate(`/boards/${board.id}`)
   }
 
-
   function handleStartRename(board: StoredBoard) {
     setEditingBoardId(board.id)
     setDraftName(board.name)
@@ -69,13 +68,9 @@ export function BoardsPage() {
       <div className="mx-auto max-w-5xl px-6 py-10">
         <header className="mb-10 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold">
-              Flowboard
-            </h1>
+            <h1 className="text-2xl font-semibold">Flowboard</h1>
 
-            <p className="mt-1 text-sm text-slate-400">
-              Your local flowcharts
-            </p>
+            <p className="mt-1 text-sm text-slate-400">Your local flowcharts</p>
           </div>
 
           <button
@@ -88,14 +83,10 @@ export function BoardsPage() {
         </header>
 
         {isLoading ? (
-          <p className="text-sm text-slate-400">
-            Loading boards...
-          </p>
+          <p className="text-sm text-slate-400">Loading boards...</p>
         ) : boards.length === 0 ? (
           <div className="rounded-lg border border-dashed border-slate-700 p-10 text-center">
-            <p className="text-slate-300">
-              No boards yet.
-            </p>
+            <p className="text-slate-300">No boards yet.</p>
 
             <p className="mt-1 text-sm text-slate-500">
               Create your first board to start diagramming.
@@ -138,9 +129,7 @@ export function BoardsPage() {
                       className="rounded border border-slate-700 bg-slate-950 px-2 py-1 text-sm outline-none focus:border-slate-500"
                     />
                   ) : (
-                    <div className="font-medium">
-                      {board.name}
-                    </div>
+                    <div className="font-medium">{board.name}</div>
                   )}
 
                   {editingBoardId !== board.id && (
@@ -158,10 +147,7 @@ export function BoardsPage() {
                 </div>
 
                 <div className="mt-1 text-xs text-slate-500">
-                  Updated{' '}
-                  {new Date(
-                    board.updatedAt,
-                  ).toLocaleString()}
+                  Updated {new Date(board.updatedAt).toLocaleString()}
                 </div>
               </div>
             ))}

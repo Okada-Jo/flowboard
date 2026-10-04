@@ -1,3 +1,25 @@
+# Flowboard
+
+## Development tooling
+
+Use Node.js 22.22.1+ (or Node.js 24 LTS).
+Run `npm install` to install dependencies and activate the Husky Git hooks.
+In VS Code, install the recommended **ESLint** and **Prettier** extensions
+(open Extensions and search `@recommended`). The checked-in workspace settings
+format files and apply available ESLint fixes on explicit save (Ctrl/Cmd+S).
+Remaining lint errors appear in the Problems panel and need manual fixes.
+
+Before each commit, Husky runs lint-staged on staged files: JavaScript and
+TypeScript get ESLint auto-fixes followed by Prettier; JSON, CSS, HTML, Markdown,
+and YAML get Prettier. Unresolved lint errors or warnings block the commit.
+Formatting follows the existing single-quote, no-semicolon style.
+
+- `npm run lint` — check lint rules across the project.
+- `npm run lint:fix` — apply available lint fixes.
+- `npm run format` — format the project.
+- `npm run format:check` — check formatting without changing files.
+- `npm run build` — type-check and build the app.
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
@@ -41,7 +63,6 @@ export default defineConfig([
     },
   },
 ])
-
 ```
 
 You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
@@ -71,5 +92,4 @@ export default defineConfig([
     },
   },
 ])
-
 ```

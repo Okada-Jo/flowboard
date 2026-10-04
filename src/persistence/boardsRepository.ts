@@ -1,26 +1,16 @@
 import { db } from './db'
 
-import type {
-  DiagramDocument,
-  StoredBoard,
-} from '../features/editor/types'
+import type { DiagramDocument, StoredBoard } from '../features/editor/types'
 
-export async function getBoard(
-  id: string,
-): Promise<StoredBoard | undefined> {
+export async function getBoard(id: string): Promise<StoredBoard | undefined> {
   return db.boards.get(id)
 }
 
 export async function listBoards(): Promise<StoredBoard[]> {
-  return db.boards
-    .orderBy('updatedAt')
-    .reverse()
-    .toArray()
+  return db.boards.orderBy('updatedAt').reverse().toArray()
 }
 
-export async function createBoard(
-  name: string,
-): Promise<StoredBoard> {
+export async function createBoard(name: string): Promise<StoredBoard> {
   const now = new Date().toISOString()
 
   const board: StoredBoard = {
@@ -49,16 +39,11 @@ export async function saveBoard(
   })
 }
 
-export async function deleteBoard(
-  id: string,
-): Promise<void> {
+export async function deleteBoard(id: string): Promise<void> {
   await db.boards.delete(id)
 }
 
-export async function renameBoard(
-  id: string,
-  name: string,
-): Promise<void> {
+export async function renameBoard(id: string, name: string): Promise<void> {
   await db.boards.update(id, {
     name,
     updatedAt: new Date().toISOString(),

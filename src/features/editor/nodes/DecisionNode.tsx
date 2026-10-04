@@ -1,17 +1,9 @@
-import {
-  Handle,
-  Position,
-  type Node,
-  type NodeProps,
-} from '@xyflow/react'
+import { Handle, Position, type Node, type NodeProps } from '@xyflow/react'
 
 import type { FlowNodeData } from '../types'
 import { EditableNodeLabel } from '../components/EditableNodeLabel'
 
-export function DecisionNode({
-  id,
-  data,
-}: NodeProps<Node<FlowNodeData>>) {
+export function DecisionNode({ id, data }: NodeProps<Node<FlowNodeData>>) {
   return (
     <div className="relative flex h-32 w-32 rotate-45 items-center justify-center border border-slate-600 bg-slate-800 shadow-lg">
       <Handle type="target" position={Position.Top} />

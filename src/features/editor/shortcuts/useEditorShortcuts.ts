@@ -15,9 +15,7 @@ export function useEditorShortcuts() {
 
   const nodes = useAppSelector((state) => state.editor.nodes)
   const edges = useAppSelector((state) => state.editor.edges)
-  const clipboard = useAppSelector(
-    (state) => state.editor.clipboard,
-  )
+  const clipboard = useAppSelector((state) => state.editor.clipboard)
   const selectedNodeIds = useAppSelector(
     (state) => state.editor.selectedNodeIds,
   )
@@ -35,8 +33,7 @@ export function useEditorShortcuts() {
       edges
         .filter(
           (edge) =>
-            selectedIds.has(edge.source) &&
-            selectedIds.has(edge.target),
+            selectedIds.has(edge.source) && selectedIds.has(edge.target),
         )
         .map((edge) => [edge.id, crypto.randomUUID()]),
     )
@@ -94,17 +91,11 @@ export function useEditorShortcuts() {
         event.preventDefault()
 
         const nodeIds = Object.fromEntries(
-          clipboard.nodes.map((node) => [
-            node.id,
-            crypto.randomUUID(),
-          ]),
+          clipboard.nodes.map((node) => [node.id, crypto.randomUUID()]),
         )
 
         const edgeIds = Object.fromEntries(
-          clipboard.edges.map((edge) => [
-            edge.id,
-            crypto.randomUUID(),
-          ]),
+          clipboard.edges.map((edge) => [edge.id, crypto.randomUUID()]),
         )
 
         dispatch(
@@ -133,5 +124,5 @@ export function useEditorShortcuts() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [dispatch, duplicateSelectedNodes])
+  }, [clipboard, dispatch, duplicateSelectedNodes])
 }

@@ -58,10 +58,7 @@ export function EditorPage() {
   return (
     <main className="h-screen bg-slate-950 text-slate-100">
       <header className="flex h-14 items-center border-b border-slate-800 px-4">
-        <Link
-          to="/"
-          className="font-medium hover:text-white"
-        >
+        <Link to="/" className="font-medium hover:text-white">
           Flowboard
         </Link>
 

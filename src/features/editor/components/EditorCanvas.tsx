@@ -104,22 +104,22 @@ function EditorCanvasInner() {
     }
   }
 
-    function handleEdgesChange(changes: EdgeChange[]) {
-      for (const change of changes) {
-        if (change.type === 'select') {
-          dispatch(
-            edgeSelectionChanged({
-              id: change.id,
-              selected: change.selected,
-            }),
-          )
-        }
+  function handleEdgesChange(changes: EdgeChange[]) {
+    for (const change of changes) {
+      if (change.type === 'select') {
+        dispatch(
+          edgeSelectionChanged({
+            id: change.id,
+            selected: change.selected,
+          }),
+        )
+      }
 
-        if (change.type === 'remove') {
-          dispatch(edgeDeleted(change.id))
-        }
+      if (change.type === 'remove') {
+        dispatch(edgeDeleted(change.id))
       }
     }
+  }
 
   function handleConnect(connection: Connection) {
     if (!connection.source || !connection.target) {
@@ -135,10 +135,7 @@ function EditorCanvasInner() {
     )
   }
 
-  function handleAddNode(
-    type: FlowNodeType,
-    label: string,
-  ) {
+  function handleAddNode(type: FlowNodeType, label: string) {
     const position = screenToFlowPosition({
       x: window.innerWidth / 2,
       y: window.innerHeight / 2,
