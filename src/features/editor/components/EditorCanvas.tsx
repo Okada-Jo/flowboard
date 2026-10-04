@@ -29,9 +29,16 @@ import {
 } from '../editorSlice'
 import { ProcessNode } from '../nodes/ProcessNode'
 import { useEditorShortcuts } from '../shortcuts/useEditorShortcuts'
+import { NoteNode } from '../nodes/NoteNode'
+import { InputOutputNode } from '../nodes/InputOutputNode'
+import { DecisionNode } from '../nodes/DecisionNode'
+import type { FlowNodeType } from '../types'
 
 const nodeTypes = {
   process: ProcessNode,
+  decision: DecisionNode,
+  'input-output': InputOutputNode,
+  note: NoteNode,
 }
 
 function EditorCanvasInner() {
@@ -128,7 +135,10 @@ function EditorCanvasInner() {
     )
   }
 
-  function handleAddProcessNode() {
+  function handleAddNode(
+    type: FlowNodeType,
+    label: string,
+  ) {
     const position = screenToFlowPosition({
       x: window.innerWidth / 2,
       y: window.innerHeight / 2,
@@ -137,10 +147,10 @@ function EditorCanvasInner() {
     dispatch(
       nodeAdded({
         id: crypto.randomUUID(),
-        type: 'process',
+        type,
         position,
         data: {
-          label: 'New Process',
+          label,
         },
       }),
     )
@@ -163,10 +173,34 @@ function EditorCanvasInner() {
         <div className="flex gap-2">
           <button
             type="button"
-            onClick={handleAddProcessNode}
-            className="rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-medium text-slate-100 hover:bg-slate-800"
+            onClick={() => handleAddNode('process', 'New Process')}
+            className="rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:bg-slate-800"
           >
-            + Process
+            Process
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleAddNode('decision', 'Decision?')}
+            className="rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:bg-slate-800"
+          >
+            Decision
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleAddNode('input-output', 'Input / Output')}
+            className="rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:bg-slate-800"
+          >
+            Input / Output
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleAddNode('note', 'Note')}
+            className="rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:bg-slate-800"
+          >
+            Note
           </button>
 
           <button

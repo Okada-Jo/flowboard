@@ -4,6 +4,11 @@ export type FlowNodeType =
   | 'input-output'
   | 'note'
 
+export type FlowNodeData = {
+  label: string
+  description?: string
+}
+
 export type FlowNode = {
   id: string
   type: FlowNodeType
@@ -11,10 +16,7 @@ export type FlowNode = {
     x: number
     y: number
   }
-  data: {
-    label: string
-    description?: string
-  }
+  data: FlowNodeData
 }
 
 export type FlowEdge = {
