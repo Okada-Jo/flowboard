@@ -31,31 +31,8 @@ const initialState: EditorState = {
   future: [],
   selectedEdgeIds: [],
   clipboard: null,
-  nodes: [
-    {
-      id: '1',
-      type: 'process',
-      position: { x: 100, y: 100 },
-      data: {
-        label: 'User Signup',
-      },
-    },
-    {
-      id: '2',
-      type: 'process',
-      position: { x: 400, y: 250 },
-      data: {
-        label: 'Email verified?',
-      },
-    },
-  ],
-  edges: [
-    {
-      id: '1-2',
-      source: '1',
-      target: '2',
-    },
-  ],
+  nodes: [],
+  edges: [],
 }
 
 function snapshotDocument(state: EditorState): DiagramDocument {
@@ -377,9 +354,25 @@ const editorSlice = createSlice({
       state.selectedNodeIds = pastedNodes.map((node) => node.id)
       state.selectedEdgeIds = []
     },
+    boardLoaded(
+      state,
+      action: PayloadAction<DiagramDocument>,
+    ) {
+      state.nodes = action.payload.nodes
+      state.edges = action.payload.edges
+
+      state.selectedNodeIds = []
+      state.selectedEdgeIds = []
+
+      state.past = []
+      state.future = []
+
+      state.historyTransactionActive = false
+      state.transactionStart = null
+    },
   },
 })
 
-export const { undo, selectionCopied, clipboardPasted, duplicateSelection, edgeSelectionChanged, selectionDeleted, redo, nodePositionChanged, historyTransactionStarted, historyTransactionCommitted, nodeLabelChanged, nodeDeleted, nodeSelectionChanged, edgeAdded, edgeDeleted, nodeAdded } = editorSlice.actions
+export const { undo, boardLoaded, selectionCopied, clipboardPasted, duplicateSelection, edgeSelectionChanged, selectionDeleted, redo, nodePositionChanged, historyTransactionStarted, historyTransactionCommitted, nodeLabelChanged, nodeDeleted, nodeSelectionChanged, edgeAdded, edgeDeleted, nodeAdded } = editorSlice.actions
 
 export default editorSlice.reducer

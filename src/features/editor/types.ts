@@ -34,3 +34,11 @@ export type FlowClipboard = {
   nodes: FlowNode[]
   edges: FlowEdge[]
 }
+
+export type StoredBoard = {
+  id: string
+  name: string
+  document: DiagramDocument
+  createdAt: string
+  updatedAt: string
+}
