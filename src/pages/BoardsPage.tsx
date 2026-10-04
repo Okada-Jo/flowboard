@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 
 import {
   createBoard,
+  deleteBoard,
   listBoards,
   renameBoard,
 } from '../persistence/boardsRepository'
@@ -61,6 +62,22 @@ export function BoardsPage() {
     )
 
     setEditingBoardId(null)
+  }
+
+  async function handleDeleteBoard(board: StoredBoard) {
+    const confirmed = window.confirm(
+      `Delete "${board.name}"? This cannot be undone.`,
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+    await deleteBoard(board.id)
+
+    setBoards((currentBoards) =>
+      currentBoards.filter((currentBoard) => currentBoard.id !== board.id),
+    )
   }
 
   return (
@@ -133,16 +150,31 @@ export function BoardsPage() {
                   )}
 
                   {editingBoardId !== board.id && (
-                    <button
-                      onClick={(event) => {
-                        event.stopPropagation()
-                        handleStartRename(board)
-                      }}
-                      className="rounded px-2 py-1 text-sm text-slate-400 hover:bg-slate-700 hover:text-slate-100"
-                      aria-label={`Rename ${board.name}`}
-                    >
-                      Edit
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          handleStartRename(board)
+                        }}
+                        className="rounded px-2 py-1 text-sm text-slate-400 hover:bg-slate-700 hover:text-slate-100"
+                        aria-label={`Rename ${board.name}`}
+                      >
+                        Edit
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          void handleDeleteBoard(board)
+                        }}
+                        className="rounded px-2 py-1 text-sm text-slate-400 hover:bg-slate-700 hover:text-red-400"
+                        aria-label={`Delete ${board.name}`}
+                      >
+                        Delete
+                      </button>
+                    </div>
                   )}
                 </div>
 

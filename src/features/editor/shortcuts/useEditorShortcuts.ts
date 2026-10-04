@@ -8,6 +8,8 @@ import {
   duplicateSelection,
   clipboardPasted,
   selectionCopied,
+  selectAll,
+  selectionCleared,
 } from '../editorSlice'
 
 export function useEditorShortcuts() {
@@ -59,6 +61,11 @@ export function useEditorShortcuts() {
         return
       }
 
+      if (event.key === 'Escape') {
+        dispatch(selectionCleared())
+        return
+      }
+
       if (event.key === 'Delete' || event.key === 'Backspace') {
         event.preventDefault()
         dispatch(selectionDeleted())
@@ -105,6 +112,12 @@ export function useEditorShortcuts() {
           }),
         )
 
+        return
+      }
+
+      if (event.key.toLowerCase() === 'a') {
+        event.preventDefault()
+        dispatch(selectAll())
         return
       }
 

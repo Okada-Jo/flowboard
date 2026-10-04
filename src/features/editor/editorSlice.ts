@@ -341,6 +341,14 @@ const editorSlice = createSlice({
       state.historyTransactionActive = false
       state.transactionStart = null
     },
+    selectAll(state) {
+      state.selectedNodeIds = state.nodes.map((node) => node.id)
+      state.selectedEdgeIds = state.edges.map((edge) => edge.id)
+    },
+    selectionCleared(state) {
+      state.selectedNodeIds = []
+      state.selectedEdgeIds = []
+    },
   },
 })
 
@@ -362,6 +370,8 @@ export const {
   edgeAdded,
   edgeDeleted,
   nodeAdded,
+  selectAll,
+  selectionCleared,
 } = editorSlice.actions
 
 export default editorSlice.reducer

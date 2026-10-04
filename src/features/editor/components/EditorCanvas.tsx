@@ -58,15 +58,25 @@ function EditorCanvasInner() {
     (state) => state.editor.selectedEdgeIds,
   )
 
+  const selectionCount = selectedNodeIds.length + selectedEdgeIds.length
+
   const canvasNodes = nodes.map((node) => ({
     ...node,
     selected: selectedNodeIds.includes(node.id),
   }))
 
-  const canvasEdges = edges.map((edge) => ({
-    ...edge,
-    selected: selectedEdgeIds.includes(edge.id),
-  }))
+  const canvasEdges = edges.map((edge) => {
+    const selected = selectedEdgeIds.includes(edge.id)
+
+    return {
+      ...edge,
+      selected,
+      style: {
+        stroke: selected ? '#60a5fa' : '#64748b',
+        strokeWidth: selected ? 2.5 : 1.5,
+      },
+    }
+  })
 
   function handleNodesChange(changes: NodeChange[]) {
     for (const change of changes) {
@@ -161,6 +171,7 @@ function EditorCanvasInner() {
       onNodesChange={handleNodesChange}
       onEdgesChange={handleEdgesChange}
       onConnect={handleConnect}
+      deleteKeyCode={null}
       fitView
     >
       <Background />
@@ -215,6 +226,11 @@ function EditorCanvasInner() {
           >
             Redo
           </button>
+          {selectionCount > 0 && (
+            <span className="text-xs text-slate-400">
+              {selectionCount} selected
+            </span>
+          )}
         </div>
       </Panel>
     </ReactFlow>
