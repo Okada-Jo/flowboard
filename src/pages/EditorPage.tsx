@@ -65,36 +65,39 @@ export function EditorPage() {
 
   if (isLoading) {
     return (
-      <main className="flex h-screen items-center justify-center bg-slate-950 text-slate-400">
+      <main className="flex h-screen items-center justify-center bg-page-loading text-content-muted">
         Loading board...
       </main>
     )
   }
 
   return (
-    <main className="h-screen bg-slate-950 text-slate-100">
-      <header className="flex h-14 items-center border-b border-slate-800 px-4">
-        <Link to="/" className="font-medium hover:text-white">
+    <main className="h-screen editor-page">
+      <header className="editor-header flex h-16 items-center gap-4 border-b border-page-border px-5">
+        <Link to="/" className="brand shrink-0">
+          <span className="brand-mark" aria-hidden="true">
+            ⌘
+          </span>{' '}
           Flowboard
         </Link>
 
-        <span className="ml-4 text-sm text-slate-400">
+        <span className="board-title min-w-0 truncate text-sm text-content-muted">
           {boardName || 'Board not found'}
         </span>
         <button
           type="button"
           onClick={handleExport}
-          className="ml-auto rounded-md border border-slate-700 px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
+          className="secondary-button ml-auto"
         >
           Export
         </button>
       </header>
 
-      <div className="h-[calc(100vh-3.5rem)]">
+      <div className="h-[calc(100dvh-4rem)]">
         {boardName ? (
           <EditorCanvas />
         ) : (
-          <div className="flex h-full items-center justify-center text-slate-400">
+          <div className="flex h-full items-center justify-center text-content-muted">
             Board not found.
           </div>
         )}

@@ -72,7 +72,7 @@ function EditorCanvasInner() {
       ...edge,
       selected,
       style: {
-        stroke: selected ? '#60a5fa' : '#64748b',
+        stroke: selected ? 'var(--color-edge-selected)' : 'var(--color-edge)',
         strokeWidth: selected ? 2.5 : 1.5,
       },
     }
@@ -165,6 +165,8 @@ function EditorCanvasInner() {
 
   return (
     <ReactFlow
+      className="flow-canvas"
+      colorMode="light"
       nodes={canvasNodes}
       edges={canvasEdges}
       nodeTypes={nodeTypes}
@@ -174,47 +176,59 @@ function EditorCanvasInner() {
       deleteKeyCode={null}
       fitView
     >
-      <Background />
+      <Background gap={24} size={1} color="var(--color-grid)" />
       <Controls />
 
       <Panel position="top-left">
-        <div className="flex gap-2">
+        <div className="node-toolbar">
           <button
             type="button"
             onClick={() => handleAddNode('process', 'New Process')}
-            className="rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:bg-slate-800"
+            className="tool-button"
           >
+            <span className="tool-symbol process-color" aria-hidden="true">
+              ▤
+            </span>{' '}
             Process
           </button>
 
           <button
             type="button"
             onClick={() => handleAddNode('decision', 'Decision?')}
-            className="rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:bg-slate-800"
+            className="tool-button"
           >
+            <span className="tool-symbol decision-color" aria-hidden="true">
+              ◇
+            </span>{' '}
             Decision
           </button>
 
           <button
             type="button"
             onClick={() => handleAddNode('input-output', 'Input / Output')}
-            className="rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:bg-slate-800"
+            className="tool-button"
           >
+            <span className="tool-symbol io-color" aria-hidden="true">
+              ⇄
+            </span>{' '}
             Input / Output
           </button>
 
           <button
             type="button"
             onClick={() => handleAddNode('note', 'Note')}
-            className="rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:bg-slate-800"
+            className="tool-button"
           >
+            <span className="tool-symbol note-color" aria-hidden="true">
+              ✎
+            </span>{' '}
             Note
           </button>
 
           <button
             type="button"
             onClick={() => dispatch(undo())}
-            className="rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:bg-slate-800"
+            className="tool-button"
           >
             Undo
           </button>
@@ -222,14 +236,12 @@ function EditorCanvasInner() {
           <button
             type="button"
             onClick={() => dispatch(redo())}
-            className="rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:bg-slate-800"
+            className="tool-button"
           >
             Redo
           </button>
           {selectionCount > 0 && (
-            <span className="text-xs text-slate-400">
-              {selectionCount} selected
-            </span>
+            <span className="selection-count">{selectionCount} selected</span>
           )}
         </div>
       </Panel>

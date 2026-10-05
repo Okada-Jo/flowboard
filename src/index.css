@@ -1,1 +1,472 @@
 @import 'tailwindcss';
+
+/* Semantic utility colors keep page styling on the same palette. */
+@theme inline {
+  --color-content-muted: var(--color-stone-600);
+  --color-content-secondary: var(--color-stone-700);
+  --color-content-strong: var(--color-stone-950);
+  --color-page-loading: var(--color-stone-100);
+  --color-page-border: var(--color-stone-900);
+  --color-action-hover: var(--color-stone-200);
+  --color-field: var(--color-white);
+  --color-danger: var(--color-red-700);
+  --color-danger-subtle: var(--color-red-100);
+}
+
+:root {
+  /* Shared palette: node colors also drive toolbar and board accents. */
+  --color-ink: #24251f;
+  --color-canvas: #eeeee5;
+  --color-focus: #df5032;
+  --color-process: #dfff00;
+  --color-surface: #f8f8f1;
+  --color-card: #f9f9f2;
+  --color-decision: #bda5ec;
+  --color-note: #ff9579;
+  --color-border-muted: #929387;
+  --color-edge: #33332e;
+  --color-surface-hover: #e4e4d9;
+  --color-input-output: #92c9ed;
+  --color-input: #fffef2;
+  --color-grid: #c7c6ba;
+  --color-edge-selected: #e25032;
+
+  font-family: 'Arial', 'Helvetica Neue', sans-serif;
+  color: var(--color-ink);
+  background: var(--color-canvas);
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+}
+body {
+  margin: 0;
+}
+button,
+a,
+input {
+  -webkit-tap-highlight-color: transparent;
+}
+button {
+  cursor: pointer;
+}
+button,
+a,
+[role='button'] {
+  transition:
+    background 140ms,
+    box-shadow 140ms,
+    transform 140ms;
+}
+button:focus-visible,
+a:focus-visible,
+[role='button']:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 5px;
+}
+::selection {
+  background: var(--color-process);
+  color: var(--color-ink);
+}
+.boards-page {
+  background: var(--color-canvas);
+}
+.workspace-header {
+  border-bottom: 2px solid var(--color-ink);
+  padding-bottom: 24px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 23px;
+  font-weight: 900;
+  letter-spacing: -1.2px;
+}
+.brand-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  background: var(--color-ink);
+  color: var(--color-process);
+  font-size: 29px;
+  transform: rotate(-8deg);
+}
+.primary-button,
+.secondary-button {
+  padding: 10px 17px;
+  border: 2px solid var(--color-ink);
+  border-radius: 0;
+  color: var(--color-ink);
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 3px 3px 0 var(--color-ink);
+}
+.primary-button {
+  background: var(--color-process);
+}
+.secondary-button {
+  background: var(--color-surface);
+}
+.primary-button:hover,
+.secondary-button:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0 var(--color-ink);
+}
+.primary-button:active,
+.secondary-button:active {
+  transform: translate(3px, 3px);
+  box-shadow: none;
+}
+.collection-heading {
+  margin-bottom: 32px;
+}
+.collection-heading h1 {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  font-size: clamp(48px, 8vw, 88px);
+  line-height: 0.95;
+  font-weight: 900;
+  letter-spacing: -6px;
+}
+.board-count {
+  margin-top: 5px;
+  padding: 5px 8px;
+  border: 1px solid var(--color-ink);
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1;
+  letter-spacing: 0;
+}
+.board-card {
+  --card-color: var(--color-process);
+  padding: 18px;
+  border: 2px solid var(--color-ink);
+  background: var(--color-card);
+  box-shadow: 5px 5px 0 var(--color-ink);
+}
+.board-card:nth-child(3n + 2) {
+  --card-color: var(--color-decision);
+}
+.board-card:nth-child(3n) {
+  --card-color: var(--color-note);
+}
+.board-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 5px 9px 0 var(--color-ink);
+}
+.board-card button {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  border-radius: 0;
+}
+.board-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 138px;
+  margin: -18px -18px 18px;
+  border-bottom: 2px solid var(--color-ink);
+  background:
+    radial-gradient(
+        color-mix(in srgb, var(--color-ink) 18.823529%, transparent) 1px,
+        transparent 1px
+      )
+      0 0 / 12px 12px,
+    var(--card-color);
+}
+.board-preview span {
+  width: 44px;
+  height: 28px;
+  border: 2px solid var(--color-ink);
+  background: var(--color-card);
+  box-shadow: 3px 3px 0 var(--color-ink);
+}
+.board-preview span:nth-of-type(2) {
+  width: 29px;
+  height: 29px;
+  transform: rotate(45deg);
+  background: var(--color-ink);
+  box-shadow: none;
+}
+.board-preview span:last-child {
+  border-radius: 50%;
+}
+.board-preview i {
+  width: 30px;
+  height: 2px;
+  background: var(--color-ink);
+}
+.empty-state {
+  border: 2px dashed var(--color-border-muted);
+  background: color-mix(in srgb, var(--color-surface) 50.196078%, transparent);
+}
+.editor-page {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+}
+.editor-header {
+  background: var(--color-surface);
+  border-bottom-width: 2px;
+}
+.board-title {
+  padding-left: 20px;
+  border-left: 1px solid var(--color-ink);
+  font-family: 'Courier New', monospace;
+}
+.flow-canvas.react-flow {
+  background: var(--color-canvas);
+  --xy-controls-button-background-color: var(--color-surface);
+  --xy-controls-button-background-color-hover: var(--color-process);
+  --xy-controls-button-color: var(--color-ink);
+  --xy-controls-button-border-color: var(--color-ink);
+  --xy-edge-stroke: var(--color-edge);
+  --xy-selection-background-color: color-mix(
+    in srgb,
+    var(--color-process) 18.823529%,
+    transparent
+  );
+  --xy-selection-border: 1px dashed var(--color-ink);
+}
+.node-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  max-width: calc(100vw - 32px);
+  padding: 5px;
+  border: 2px solid var(--color-ink);
+  background: var(--color-surface);
+  box-shadow: 4px 4px 0 var(--color-ink);
+}
+.tool-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  color: var(--color-ink);
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  font-weight: 700;
+}
+.tool-button:hover {
+  background: var(--color-surface-hover);
+}
+.tool-symbol {
+  display: grid;
+  place-items: center;
+  width: 23px;
+  height: 23px;
+  border: 1px solid var(--color-ink);
+  font-size: 17px;
+  line-height: 1;
+}
+.process-color {
+  background: var(--color-process);
+}
+.decision-color {
+  background: var(--color-decision);
+}
+.io-color {
+  background: var(--color-input-output);
+}
+.note-color {
+  background: var(--color-note);
+}
+.selection-count {
+  padding: 0 8px;
+  font-family: monospace;
+  font-size: 11px;
+}
+.flow-canvas .react-flow__controls {
+  overflow: hidden;
+  border: 2px solid var(--color-ink);
+  border-radius: 0;
+  box-shadow: 3px 3px 0 var(--color-ink);
+}
+.flow-node {
+  --node-bg: var(--color-process);
+  position: relative;
+  width: 210px;
+  padding: 0 0 18px;
+  color: var(--color-ink);
+}
+.flow-node__surface {
+  position: absolute;
+  inset: 0;
+  border: 2px solid var(--color-ink);
+  border-radius: 0;
+  background: var(--node-bg);
+  box-shadow: 5px 5px 0 var(--color-ink);
+  transition: box-shadow 150ms;
+}
+.flow-node:hover .flow-node__surface {
+  box-shadow: 7px 7px 0 var(--color-ink);
+}
+.flow-node.is-selected .flow-node__surface {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 5px;
+}
+.flow-node__content {
+  position: relative;
+}
+.flow-node__type {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 2px 15px;
+  padding: 8px 13px;
+  border-bottom: 1px solid var(--color-ink);
+  font-family: 'Courier New', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.flow-node__type > span {
+  font-size: 15px;
+  line-height: 1;
+}
+.flow-node__label {
+  padding: 0 16px;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -0.5px;
+  overflow-wrap: anywhere;
+}
+.flow-node__description {
+  margin: 9px 16px 0;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.node-label-input {
+  background: var(--color-input);
+  color: var(--color-ink);
+  border: 2px solid var(--color-ink);
+}
+.node-label-input:focus {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+.flow-node--decision {
+  --node-bg: var(--color-decision);
+  width: 210px;
+  min-height: 180px;
+  padding: 43px 20px;
+  text-align: center;
+}
+.flow-node--decision .flow-node__surface {
+  clip-path: polygon(50% 0, 100% 24%, 100% 76%, 50% 100%, 0 76%, 0 24%);
+  border: none;
+  background: var(--color-ink);
+  box-shadow: none;
+}
+.flow-node--decision .flow-node__surface::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  background: var(--node-bg);
+  clip-path: inherit;
+}
+.flow-node--decision.is-selected {
+  filter: drop-shadow(3px 0 var(--color-focus))
+    drop-shadow(-3px 0 var(--color-focus)) drop-shadow(0 3px var(--color-focus))
+    drop-shadow(0 -3px var(--color-focus));
+}
+.flow-node--decision .flow-node__type {
+  justify-content: center;
+  margin-bottom: 10px;
+  padding: 0;
+  border: none;
+}
+.flow-node--decision .flow-node__label {
+  padding: 0 8px;
+}
+.flow-node--input-output {
+  --node-bg: var(--color-input-output);
+  padding: 0 12px 18px;
+}
+.flow-node--input-output .flow-node__surface {
+  transform: skewX(-9deg);
+}
+.flow-node--input-output .flow-node__type {
+  padding-inline: 5px;
+}
+.flow-node--note {
+  --node-bg: var(--color-note);
+  min-height: 148px;
+  padding-top: 17px;
+}
+.flow-node--note .flow-node__surface {
+  border-width: 1px;
+  box-shadow: 4px 4px 0 var(--color-ink);
+  background:
+    repeating-linear-gradient(
+      transparent 0 27px,
+      color-mix(in srgb, var(--color-ink) 9.411765%, transparent) 27px 28px
+    ),
+    var(--node-bg);
+}
+.flow-node--note .flow-node__surface::before {
+  content: '';
+  position: absolute;
+  top: -9px;
+  left: 68px;
+  width: 70px;
+  height: 18px;
+  background: color-mix(in srgb, var(--color-surface) 78.823529%, transparent);
+  border-inline: 1px dashed
+    color-mix(in srgb, var(--color-ink) 25.098039%, transparent);
+  transform: rotate(-5deg);
+}
+.flow-node--note .flow-node__type {
+  border: none;
+  padding-top: 0;
+}
+.flow-node--note .flow-node__label {
+  font-family: Georgia, serif;
+  font-size: 19px;
+  font-style: italic;
+  font-weight: 400;
+}
+.flow-canvas .react-flow__handle {
+  width: 11px;
+  height: 11px;
+  border: 2px solid var(--color-ink);
+  border-radius: 0;
+  background: var(--color-surface);
+  z-index: 2;
+}
+.flow-canvas .react-flow__handle:hover {
+  background: var(--color-focus);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--color-focus) 25.098039%, transparent);
+}
+@media (max-width: 640px) {
+  .tool-button {
+    padding: 5px 7px;
+  }
+  .editor-header {
+    gap: 10px;
+    padding-inline: 12px;
+  }
+  .editor-header .brand {
+    font-size: 17px;
+  }
+  .board-title {
+    padding-left: 10px;
+  }
+  .collection-heading h1 {
+    letter-spacing: -3px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+  }
+}

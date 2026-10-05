@@ -109,9 +109,15 @@ export function BoardsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100">
-      <div className="mx-auto max-w-5xl px-6 py-10">
-        <header className="mb-10 flex items-center justify-between">
+    <main className="boards-page min-h-screen">
+      <div className="mx-auto max-w-6xl px-6 py-10">
+        <header className="workspace-header mb-14 flex flex-wrap items-center justify-between gap-5">
+          <div className="brand">
+            <span className="brand-mark" aria-hidden="true">
+              ⌘
+            </span>{' '}
+            Flowboard
+          </div>
           <div className="flex items-center gap-2">
             <input
               ref={fileInputRef}
@@ -126,7 +132,7 @@ export function BoardsPage() {
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="rounded-md border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:bg-slate-800"
+              className="secondary-button"
             >
               Import
             </button>
@@ -134,28 +140,36 @@ export function BoardsPage() {
             <button
               type="button"
               onClick={handleCreateBoard}
-              className="rounded-md bg-slate-100 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-white"
+              className="primary-button"
             >
-              New board
+              + New board
             </button>
           </div>
         </header>
 
+        <div className="collection-heading">
+          <h1>
+            Boards
+            <span className="board-count">
+              {String(boards.length).padStart(2, '0')}
+            </span>
+          </h1>
+        </div>
         {isLoading ? (
-          <p className="text-sm text-slate-400">Loading boards...</p>
+          <p className="text-sm text-content-muted">Loading boards...</p>
         ) : boards.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-slate-700 p-10 text-center">
-            <p className="text-slate-300">No boards yet.</p>
+          <div className="empty-state p-16 text-center">
+            <p className="text-content-secondary">No boards yet.</p>
 
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-content-muted">
               Create your first board to start diagramming.
             </p>
           </div>
         ) : (
-          <div className="grid gap-3">
-            {boards.map((board, key) => (
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {boards.map((board) => (
               <div
-                key={key}
+                key={board.id}
                 role="button"
                 tabIndex={0}
                 onClick={() => navigate(`/boards/${board.id}`)}
@@ -164,9 +178,16 @@ export function BoardsPage() {
                     navigate(`/boards/${board.id}`)
                   }
                 }}
-                className="cursor-pointer rounded-lg border border-slate-800 bg-slate-900 p-4 text-left hover:border-slate-700 hover:bg-slate-800"
+                className="board-card cursor-pointer text-left"
               >
-                <div className="flex items-center justify-between gap-4">
+                <div className="board-preview" aria-hidden="true">
+                  <span />
+                  <i />
+                  <span />
+                  <i />
+                  <span />
+                </div>
+                <div className="flex items-center justify-between gap-2">
                   {editingBoardId === board.id ? (
                     <input
                       autoFocus
@@ -185,10 +206,12 @@ export function BoardsPage() {
                           setEditingBoardId(null)
                         }
                       }}
-                      className="rounded border border-slate-700 bg-slate-950 px-2 py-1 text-sm outline-none focus:border-slate-500"
+                      className="min-w-0 w-full border border-content-muted bg-field px-2 py-1 text-sm outline-none focus:ring-2 focus:ring-page-border"
                     />
                   ) : (
-                    <div className="font-medium">{board.name}</div>
+                    <div className="min-w-0 truncate font-medium">
+                      {board.name}
+                    </div>
                   )}
 
                   {editingBoardId !== board.id && (
@@ -199,7 +222,7 @@ export function BoardsPage() {
                           event.stopPropagation()
                           handleStartRename(board)
                         }}
-                        className="rounded px-2 py-1 text-sm text-slate-400 hover:bg-slate-700 hover:text-slate-100"
+                        className="rounded px-2 py-1 text-sm text-content-muted hover:bg-action-hover hover:text-content-strong"
                         aria-label={`Rename ${board.name}`}
                       >
                         Edit
@@ -211,7 +234,7 @@ export function BoardsPage() {
                           event.stopPropagation()
                           void handleDeleteBoard(board)
                         }}
-                        className="rounded px-2 py-1 text-sm text-slate-400 hover:bg-slate-700 hover:text-red-400"
+                        className="rounded px-2 py-1 text-sm text-content-muted hover:bg-danger-subtle hover:text-danger"
                         aria-label={`Delete ${board.name}`}
                       >
                         Delete
@@ -220,7 +243,7 @@ export function BoardsPage() {
                   )}
                 </div>
 
-                <div className="mt-1 text-xs text-slate-500">
+                <div className="mt-3 text-xs text-content-muted">
                   Updated {new Date(board.updatedAt).toLocaleString()}
                 </div>
               </div>

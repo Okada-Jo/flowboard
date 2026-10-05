@@ -57,7 +57,7 @@ export function EditableNodeLabel({
             setIsEditing(false)
           }
         }}
-        className={`nodrag w-full rounded bg-slate-950 px-2 py-1 text-sm text-slate-100 outline-none ring-1 ring-slate-600 focus:ring-slate-400 ${
+        className={`nodrag node-label-input w-full px-2 py-1 text-sm outline-none ${
           inputClassName ?? ''
         }`}
       />
