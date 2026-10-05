@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import {
@@ -8,8 +8,10 @@ import {
   renameBoard,
 } from '../persistence/boardsRepository'
 import type { StoredBoard } from '../features/editor/types'
+import { parseFlowboardFile } from '../import-export/importBoard'
 
 export function BoardsPage() {
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
 
   const [boards, setBoards] = useState<StoredBoard[]>([])
@@ -80,23 +82,63 @@ export function BoardsPage() {
     )
   }
 
+  async function handleImportFile(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+
+    if (!file) {
+      return
+    }
+
+    const text = await file.text()
+    const result = parseFlowboardFile(text)
+
+    if (!result.success) {
+      window.alert(result.error)
+      event.target.value = ''
+      return
+    }
+
+    const importedBoard = await createBoard(result.file.board.name, {
+      nodes: result.file.board.nodes,
+      edges: result.file.board.edges,
+    })
+
+    event.target.value = ''
+
+    navigate(`/boards/${importedBoard.id}`)
+  }
+
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100">
       <div className="mx-auto max-w-5xl px-6 py-10">
         <header className="mb-10 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold">Flowboard</h1>
+          <div className="flex items-center gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json,.flowboard.json,application/json"
+              onChange={(event) => {
+                void handleImportFile(event)
+              }}
+              className="hidden"
+            />
 
-            <p className="mt-1 text-sm text-slate-400">Your local flowcharts</p>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="rounded-md border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:bg-slate-800"
+            >
+              Import
+            </button>
+
+            <button
+              type="button"
+              onClick={handleCreateBoard}
+              className="rounded-md bg-slate-100 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-white"
+            >
+              New board
+            </button>
           </div>
-
-          <button
-            type="button"
-            onClick={handleCreateBoard}
-            className="rounded-md bg-slate-100 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-white"
-          >
-            New board
-          </button>
         </header>
 
         {isLoading ? (

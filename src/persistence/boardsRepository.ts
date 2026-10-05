@@ -10,7 +10,13 @@ export async function listBoards(): Promise<StoredBoard[]> {
   return db.boards.orderBy('updatedAt').reverse().toArray()
 }
 
-export async function createBoard(name: string): Promise<StoredBoard> {
+export async function createBoard(
+  name: string,
+  document: DiagramDocument = {
+    nodes: [],
+    edges: [],
+  },
+): Promise<StoredBoard> {
   const now = new Date().toISOString()
 
   const board: StoredBoard = {
@@ -18,10 +24,7 @@ export async function createBoard(name: string): Promise<StoredBoard> {
     name,
     createdAt: now,
     updatedAt: now,
-    document: {
-      nodes: [],
-      edges: [],
-    },
+    document,
   }
 
   await db.boards.add(board)
@@ -48,4 +51,23 @@ export async function renameBoard(id: string, name: string): Promise<void> {
     name,
     updatedAt: new Date().toISOString(),
   })
+}
+
+export async function importBoard(
+  name: string,
+  document: DiagramDocument,
+): Promise<StoredBoard> {
+  const now = new Date().toISOString()
+
+  const board: StoredBoard = {
+    id: crypto.randomUUID(),
+    name,
+    document,
+    createdAt: now,
+    updatedAt: now,
+  }
+
+  await db.boards.add(board)
+
+  return board
 }
