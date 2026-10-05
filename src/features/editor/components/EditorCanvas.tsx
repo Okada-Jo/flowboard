@@ -1,4 +1,7 @@
-import { useRef } from 'react'
+import { useCallback, useRef, useState } from 'react'
+
+import { NodeEditingContext } from './NodeEditingContext'
+import { CanvasContextMenu } from './CanvasContextMenu'
 import {
   Background,
   Controls,
@@ -21,6 +24,7 @@ import {
   historyTransactionCommitted,
   historyTransactionStarted,
   nodeAdded,
+  nodeTypeChanged,
   nodeDeleted,
   nodePositionChanged,
   nodeSelectionChanged,
@@ -41,8 +45,18 @@ const nodeTypes = {
   note: NoteNode,
 }
 
-function EditorCanvasInner() {
+type EditorCanvasProps = { onExport: () => void }
+
+function EditorCanvasInner({ onExport }: EditorCanvasProps) {
+  const [editingNodeId, setEditingNodeId] = useState<string | null>(null)
   const isDraggingRef = useRef(false)
+  const [contextMenu, setContextMenu] = useState<{
+    nodeId?: string
+    x: number
+    y: number
+    position: { x: number; y: number }
+  } | null>(null)
+  const closeContextMenu = useCallback(() => setContextMenu(null), [])
 
   useEditorShortcuts()
 
@@ -145,12 +159,14 @@ function EditorCanvasInner() {
     )
   }
 
-  function handleAddNode(type: FlowNodeType, label: string) {
-    const position = screenToFlowPosition({
+  function handleAddNode(
+    type: FlowNodeType,
+    label: string,
+    position = screenToFlowPosition({
       x: window.innerWidth / 2,
       y: window.innerHeight / 2,
-    })
-
+    }),
+  ) {
     dispatch(
       nodeAdded({
         id: crypto.randomUUID(),
@@ -164,95 +180,170 @@ function EditorCanvasInner() {
   }
 
   return (
-    <ReactFlow
-      className="flow-canvas"
-      colorMode="light"
-      nodes={canvasNodes}
-      edges={canvasEdges}
-      nodeTypes={nodeTypes}
-      onNodesChange={handleNodesChange}
-      onEdgesChange={handleEdgesChange}
-      onConnect={handleConnect}
-      deleteKeyCode={null}
-      fitView
-    >
-      <Background gap={24} size={1} color="var(--color-grid)" />
-      <Controls />
+    <NodeEditingContext.Provider value={{ editingNodeId, setEditingNodeId }}>
+      <ReactFlow
+        className="flow-canvas"
+        colorMode="light"
+        nodes={canvasNodes}
+        edges={canvasEdges}
+        nodeTypes={nodeTypes}
+        onNodesChange={handleNodesChange}
+        onEdgesChange={handleEdgesChange}
+        onConnect={handleConnect}
+        onPaneContextMenu={(event) => {
+          event.preventDefault()
+          setContextMenu({
+            x: event.clientX,
+            y: event.clientY,
+            position: screenToFlowPosition({
+              x: event.clientX,
+              y: event.clientY,
+            }),
+          })
+        }}
+        onNodeContextMenu={(event, node) => {
+          if ((event.target as HTMLElement).closest('input, textarea')) return
+          event.preventDefault()
+          event.stopPropagation()
+          setContextMenu({
+            x: event.clientX,
+            y: event.clientY,
+            nodeId: node.id,
+            position: node.position,
+          })
+        }}
+        onMoveStart={closeContextMenu}
+        deleteKeyCode={null}
+        fitView
+      >
+        <Background gap={24} size={1} color="var(--color-grid)" />
+        <Controls />
+        {contextMenu && (
+          <CanvasContextMenu
+            x={contextMenu.x}
+            y={contextMenu.y}
+            key={contextMenu.nodeId ?? 'pane'}
+            onClose={closeContextMenu}
+            node={
+              contextMenu.nodeId
+                ? (() => {
+                    const node = nodes.find(
+                      (item) => item.id === contextMenu.nodeId,
+                    )
+                    return node
+                      ? {
+                          type: node.type,
+                          selected: selectedNodeIds.includes(node.id),
+                        }
+                      : undefined
+                  })()
+                : undefined
+            }
+            onExport={() => {
+              closeContextMenu()
+              onExport()
+            }}
+            onTypeChange={(type) => {
+              if (contextMenu.nodeId)
+                dispatch(nodeTypeChanged({ id: contextMenu.nodeId, type }))
+              closeContextMenu()
+            }}
+            onRename={() => {
+              setEditingNodeId(contextMenu.nodeId ?? null)
+              closeContextMenu()
+            }}
+            onSelect={() => {
+              if (contextMenu.nodeId)
+                dispatch(
+                  nodeSelectionChanged({
+                    id: contextMenu.nodeId,
+                    selected: true,
+                  }),
+                )
+              closeContextMenu()
+            }}
+            onAdd={(type, label) => {
+              handleAddNode(type, label, contextMenu.position)
+              closeContextMenu()
+            }}
+          />
+        )}
 
-      <Panel position="top-left">
-        <div className="node-toolbar">
-          <button
-            type="button"
-            onClick={() => handleAddNode('process', 'New Process')}
-            className="tool-button"
-          >
-            <span className="tool-symbol process-color" aria-hidden="true">
-              ▤
-            </span>{' '}
-            Process
-          </button>
+        <Panel position="top-left">
+          <div className="node-toolbar">
+            <button
+              type="button"
+              onClick={() => handleAddNode('process', 'New Process')}
+              className="tool-button"
+            >
+              <span className="tool-symbol process-color" aria-hidden="true">
+                ▤
+              </span>{' '}
+              Process
+            </button>
 
-          <button
-            type="button"
-            onClick={() => handleAddNode('decision', 'Decision?')}
-            className="tool-button"
-          >
-            <span className="tool-symbol decision-color" aria-hidden="true">
-              ◇
-            </span>{' '}
-            Decision
-          </button>
+            <button
+              type="button"
+              onClick={() => handleAddNode('decision', 'Decision?')}
+              className="tool-button"
+            >
+              <span className="tool-symbol decision-color" aria-hidden="true">
+                ◇
+              </span>{' '}
+              Decision
+            </button>
 
-          <button
-            type="button"
-            onClick={() => handleAddNode('input-output', 'Input / Output')}
-            className="tool-button"
-          >
-            <span className="tool-symbol io-color" aria-hidden="true">
-              ⇄
-            </span>{' '}
-            Input / Output
-          </button>
+            <button
+              type="button"
+              onClick={() => handleAddNode('input-output', 'Input / Output')}
+              className="tool-button"
+            >
+              <span className="tool-symbol io-color" aria-hidden="true">
+                ⇄
+              </span>{' '}
+              Input / Output
+            </button>
 
-          <button
-            type="button"
-            onClick={() => handleAddNode('note', 'Note')}
-            className="tool-button"
-          >
-            <span className="tool-symbol note-color" aria-hidden="true">
-              ✎
-            </span>{' '}
-            Note
-          </button>
+            <button
+              type="button"
+              onClick={() => handleAddNode('note', 'Note')}
+              className="tool-button"
+            >
+              <span className="tool-symbol note-color" aria-hidden="true">
+                ✎
+              </span>{' '}
+              Note
+            </button>
 
-          <button
-            type="button"
-            onClick={() => dispatch(undo())}
-            className="tool-button"
-          >
-            Undo
-          </button>
+            <button
+              type="button"
+              onClick={() => dispatch(undo())}
+              className="tool-button"
+            >
+              Undo
+            </button>
 
-          <button
-            type="button"
-            onClick={() => dispatch(redo())}
-            className="tool-button"
-          >
-            Redo
-          </button>
-          {selectionCount > 0 && (
-            <span className="selection-count">{selectionCount} selected</span>
-          )}
-        </div>
-      </Panel>
-    </ReactFlow>
+            <button
+              type="button"
+              onClick={() => dispatch(redo())}
+              className="tool-button"
+            >
+              Redo
+            </button>
+            {selectionCount > 0 && (
+              <span className="selection-count">{selectionCount} selected</span>
+            )}
+          </div>
+        </Panel>
+      </ReactFlow>
+    </NodeEditingContext.Provider>
   )
 }
 
-export function EditorCanvas() {
+export function EditorCanvas(props: EditorCanvasProps) {
   return (
     <ReactFlowProvider>
-      <EditorCanvasInner />
+      <EditorCanvasInner {...props} />
     </ReactFlowProvider>
   )
 }

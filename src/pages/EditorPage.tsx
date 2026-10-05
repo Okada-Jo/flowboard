@@ -95,7 +95,7 @@ export function EditorPage() {
 
       <div className="h-[calc(100dvh-4rem)]">
         {boardName ? (
-          <EditorCanvas />
+          <EditorCanvas onExport={handleExport} />
         ) : (
           <div className="flex h-full items-center justify-center text-content-muted">
             Board not found.

@@ -470,3 +470,46 @@ a:focus-visible,
     transition: none !important;
   }
 }
+
+.canvas-context-menu {
+  position: fixed;
+  z-index: 1000;
+  width: 220px;
+  max-width: calc(100vw - 16px);
+  max-height: calc(100dvh - 16px);
+  overflow-y: auto;
+  padding: 5px;
+  border: 2px solid var(--color-ink);
+  background: var(--color-surface);
+  box-shadow: 4px 4px 0 var(--color-ink);
+}
+.canvas-context-menu .tool-button {
+  width: 100%;
+  text-align: left;
+}
+.canvas-context-menu .tool-button:focus {
+  outline: none;
+  background: var(--color-surface-hover);
+}
+
+.context-menu-footer {
+  margin-top: 18px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border-muted);
+}
+.context-menu-divider {
+  margin: 8px 0;
+  border-top: 1px solid var(--color-border-muted);
+}
+.context-menu-heading {
+  padding: 4px 12px;
+  color: var(--color-content-muted);
+  font:
+    10px 'Courier New',
+    monospace;
+  text-transform: uppercase;
+}
+.canvas-context-menu button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

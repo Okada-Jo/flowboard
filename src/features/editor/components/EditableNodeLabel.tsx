@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useContext, useState } from 'react'
 
 import { useAppDispatch } from '../../../app/hooks'
+import { NodeEditingContext } from './NodeEditingContext'
 import { nodeLabelChanged } from '../editorSlice'
 
 type EditableNodeLabelProps = {
@@ -18,7 +19,8 @@ export function EditableNodeLabel({
 }: EditableNodeLabelProps) {
   const dispatch = useAppDispatch()
 
-  const [isEditing, setIsEditing] = useState(false)
+  const { editingNodeId, setEditingNodeId } = useContext(NodeEditingContext)
+  const isEditing = editingNodeId === nodeId
   const [draftLabel, setDraftLabel] = useState(label)
 
   function finishEditing() {
@@ -37,13 +39,18 @@ export function EditableNodeLabel({
       setDraftLabel(label)
     }
 
-    setIsEditing(false)
+    setEditingNodeId(null)
   }
 
   if (isEditing) {
     return (
       <input
         autoFocus
+        aria-label="Node name"
+        onFocus={(event) => {
+          setDraftLabel(label)
+          event.currentTarget.select()
+        }}
         value={draftLabel}
         onChange={(event) => setDraftLabel(event.target.value)}
         onBlur={finishEditing}
@@ -54,7 +61,7 @@ export function EditableNodeLabel({
 
           if (event.key === 'Escape') {
             setDraftLabel(label)
-            setIsEditing(false)
+            setEditingNodeId(null)
           }
         }}
         className={`nodrag node-label-input w-full px-2 py-1 text-sm outline-none ${
@@ -68,7 +75,7 @@ export function EditableNodeLabel({
     <div
       onDoubleClick={() => {
         setDraftLabel(label)
-        setIsEditing(true)
+        setEditingNodeId(nodeId)
       }}
       className={className}
     >

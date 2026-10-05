@@ -4,6 +4,7 @@ import type {
   FlowClipboard,
   FlowEdge,
   FlowNode,
+  FlowNodeType,
 } from './types'
 
 type EditorState = {
@@ -135,6 +136,15 @@ const editorSlice = createSlice({
       state.selectedNodeIds = state.selectedNodeIds.filter(
         (id) => id !== nodeId,
       )
+    },
+    nodeTypeChanged(
+      state,
+      action: PayloadAction<{ id: string; type: FlowNodeType }>,
+    ) {
+      const node = state.nodes.find((node) => node.id === action.payload.id)
+      if (!node || node.type === action.payload.type) return
+      recordHistory(state)
+      node.type = action.payload.type
     },
     nodeLabelChanged(
       state,
@@ -365,6 +375,7 @@ export const {
   historyTransactionStarted,
   historyTransactionCommitted,
   nodeLabelChanged,
+  nodeTypeChanged,
   nodeDeleted,
   nodeSelectionChanged,
   edgeAdded,

@@ -22,7 +22,7 @@ export function StyledNode({ id, data, selected, kind }: StyledNodeProps) {
       className={`flow-node flow-node--${kind}${selected ? ' is-selected' : ''}`}
     >
       <div className="flow-node__surface" />
-      {kind !== 'note' && <Handle type="target" position={Position.Top} />}
+      <Handle type="target" position={Position.Top} />
       <div className="flow-node__content">
         <div className="flow-node__type">
           <span aria-hidden="true">{symbol}</span>
@@ -37,7 +37,7 @@ export function StyledNode({ id, data, selected, kind }: StyledNodeProps) {
           <p className="flow-node__description">{data.description}</p>
         )}
       </div>
-      {kind !== 'note' && <Handle type="source" position={Position.Bottom} />}
+      <Handle type="source" position={Position.Bottom} />
     </div>
   )
 }
