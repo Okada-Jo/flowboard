@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
-import { useAppDispatch } from '../app/hooks'
+import { useAppDispatch, useAppSelector } from '../app/hooks'
 import { EditorCanvas } from '../features/editor/components/EditorCanvas'
 import { boardLoaded } from '../features/editor/editorSlice'
 import { getBoard } from '../persistence/boardsRepository'
 import { useBoardAutosave } from '../persistence/useBoardAutosave'
+import {
+  createFlowboardFile,
+  downloadFlowboardFile,
+} from '../import-export/exportBoard'
 
 export function EditorPage() {
   const { boardId } = useParams()
@@ -14,6 +18,9 @@ export function EditorPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [boardName, setBoardName] = useState('')
   const [boardLoadedSuccessfully, setBoardLoadedSuccessfully] = useState(false)
+
+  const nodes = useAppSelector((state) => state.editor.nodes)
+  const edges = useAppSelector((state) => state.editor.edges)
 
   useBoardAutosave({
     boardId,
@@ -47,6 +54,15 @@ export function EditorPage() {
     void loadBoard()
   }, [boardId, dispatch])
 
+  function handleExport() {
+    const file = createFlowboardFile(boardName, {
+      nodes,
+      edges,
+    })
+
+    downloadFlowboardFile(file)
+  }
+
   if (isLoading) {
     return (
       <main className="flex h-screen items-center justify-center bg-slate-950 text-slate-400">
@@ -65,6 +81,13 @@ export function EditorPage() {
         <span className="ml-4 text-sm text-slate-400">
           {boardName || 'Board not found'}
         </span>
+        <button
+          type="button"
+          onClick={handleExport}
+          className="ml-auto rounded-md border border-slate-700 px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
+        >
+          Export
+        </button>
       </header>
 
       <div className="h-[calc(100vh-3.5rem)]">
