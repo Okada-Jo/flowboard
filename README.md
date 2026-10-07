@@ -2,7 +2,8 @@
 
 ## Development tooling
 
-Use Node.js 22.22.1+ (or Node.js 24 LTS).
+Use Node.js 22.22.2+ or 24.15.0+ on the corresponding LTS release line
+(required by the jsdom test environment).
 Run `npm install` to install dependencies and activate the Husky Git hooks.
 In VS Code, install the recommended **ESLint** and **Prettier** extensions
 (open Extensions and search `@recommended`). The checked-in workspace settings
@@ -12,13 +13,23 @@ Remaining lint errors appear in the Problems panel and need manual fixes.
 Before each commit, Husky runs lint-staged on staged files: JavaScript and
 TypeScript get ESLint auto-fixes followed by Prettier; JSON, CSS, HTML, Markdown,
 and YAML get Prettier. Unresolved lint errors or warnings block the commit.
-Formatting follows the existing single-quote, no-semicolon style.
+After lint-staged succeeds, Husky runs the full Vitest suite; any failing test blocks
+the commit. Tests run once (without watch mode), including for commits that only
+change non-test files. Formatting follows the existing single-quote, no-semicolon style.
 
+- `npm test` — run all tests once.
+- `npm run test:watch` — rerun tests while developing.
 - `npm run lint` — check lint rules across the project.
 - `npm run lint:fix` — apply available lint fixes.
 - `npm run format` — format the project.
 - `npm run format:check` — check formatting without changing files.
 - `npm run build` — type-check and build the app.
+
+Tests cover editor operations and history, clipboard behavior, keyboard shortcuts,
+context menus, board management, IndexedDB persistence, autosave, and JSON
+import/export. They use Vitest and React Testing Library with jsdom and an
+isolated in-memory IndexedDB; they do not touch browser boards. Canvas layout
+and pointer dragging in a real browser are not covered by this suite.
 
 # React + TypeScript + Vite
 
