@@ -13,9 +13,8 @@ Remaining lint errors appear in the Problems panel and need manual fixes.
 Before each commit, Husky runs lint-staged on staged files: JavaScript and
 TypeScript get ESLint auto-fixes followed by Prettier; JSON, CSS, HTML, Markdown,
 and YAML get Prettier. Unresolved lint errors or warnings block the commit.
-After lint-staged succeeds, Husky runs the full Vitest suite; any failing test blocks
-the commit. Tests run once (without watch mode), including for commits that only
-change non-test files. Formatting follows the existing single-quote, no-semicolon style.
+Tests run separately with `npm test` and are not part of pre-commit.
+Formatting follows the existing single-quote, no-semicolon style.
 
 - `npm test` — run all tests once.
 - `npm run test:watch` — rerun tests while developing.
