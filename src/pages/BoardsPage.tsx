@@ -1,3 +1,4 @@
+import { ThemeToggle } from '../theme/ThemeToggle'
 import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -118,7 +119,8 @@ export function BoardsPage() {
             </span>{' '}
             Flowboard
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-3">
+            <ThemeToggle />
             <input
               ref={fileInputRef}
               type="file"

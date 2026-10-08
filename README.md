@@ -12,6 +12,8 @@ work locally in your browser. No account or backend service is required.
 - **Quick editing:** edit labels inline, change node types through context menus,
   and copy, paste, or duplicate selected nodes with their internal connections.
 - **Undo and redo:** step back and forward through diagram edits.
+- **Appearance:** choose Light, Dark, or System from either page header. Your
+  preference is saved in localStorage; System follows your device’s appearance.
 - **Local autosave:** store diagrams in IndexedDB as you work.
 - **JSON import and export:** back up boards or move them between browsers.
 

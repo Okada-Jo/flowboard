@@ -1,3 +1,4 @@
+import { useThemePreference } from '../../../theme/theme'
 import { useCallback, useRef, useState } from 'react'
 
 import { NodeEditingContext } from './NodeEditingContext'
@@ -57,6 +58,8 @@ function EditorCanvasInner({ onExport }: EditorCanvasProps) {
     position: { x: number; y: number }
   } | null>(null)
   const closeContextMenu = useCallback(() => setContextMenu(null), [])
+
+  const theme = useThemePreference()
 
   useEditorShortcuts()
 
@@ -183,7 +186,7 @@ function EditorCanvasInner({ onExport }: EditorCanvasProps) {
     <NodeEditingContext.Provider value={{ editingNodeId, setEditingNodeId }}>
       <ReactFlow
         className="flow-canvas"
-        colorMode="light"
+        colorMode={theme}
         nodes={canvasNodes}
         edges={canvasEdges}
         nodeTypes={nodeTypes}

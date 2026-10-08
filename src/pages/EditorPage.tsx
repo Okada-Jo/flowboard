@@ -1,3 +1,4 @@
+import { ThemeToggle } from '../theme/ThemeToggle'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
@@ -84,16 +85,19 @@ export function EditorPage() {
         <span className="board-title min-w-0 truncate text-sm text-content-muted">
           {boardName || 'Board not found'}
         </span>
-        <button
-          type="button"
-          onClick={handleExport}
-          className="secondary-button ml-auto"
-        >
-          Export
-        </button>
+        <div className="ml-auto flex shrink-0 items-center gap-3">
+          <ThemeToggle />
+          <button
+            type="button"
+            onClick={handleExport}
+            className="secondary-button ml-auto"
+          >
+            Export
+          </button>
+        </div>
       </header>
 
-      <div className="h-[calc(100dvh-4rem)]">
+      <div className="editor-body">
         {boardName ? (
           <EditorCanvas onExport={handleExport} />
         ) : (
