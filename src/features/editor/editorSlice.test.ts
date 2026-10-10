@@ -159,3 +159,39 @@ describe('diagram editing', () => {
     }
   })
 })
+
+it('resizes and repositions a node in one undo step and preserves dimensions in copies', () => {
+  let state = reducer(selected(), actions.historyTransactionStarted())
+  for (const width of [250, 320]) {
+    state = reducer(
+      state,
+      actions.nodePositionChanged({ id: 'a', position: { x: -50, y: -20 } }),
+    )
+    state = reducer(
+      state,
+      actions.nodeDimensionsChanged({ id: 'a', width, height: 200 }),
+    )
+  }
+  state = reducer(state, actions.historyTransactionCommitted())
+  expect(state.past).toHaveLength(1)
+  const undone = reducer(state, actions.undo())
+  expect(undone.nodes).toEqual(diagram().nodes)
+  expect(reducer(undone, actions.redo()).nodes).toEqual(state.nodes)
+  state = reducer(state, actions.duplicateSelection(ids))
+  expect(state.nodes.find((node) => node.id === 'a2')).toMatchObject({
+    width: 320,
+    height: 200,
+  })
+  state = reducer(state, actions.selectionCopied())
+  state = reducer(
+    state,
+    actions.clipboardPasted({
+      nodeIds: { a2: 'a3', b2: 'b3' },
+      edgeIds: { ab2: 'ab3' },
+    }),
+  )
+  expect(state.nodes.find((node) => node.id === 'a3')).toMatchObject({
+    width: 320,
+    height: 200,
+  })
+})

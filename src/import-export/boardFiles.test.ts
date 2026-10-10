@@ -6,6 +6,8 @@ import { diagram } from '../test/fixtures'
 it('round-trips every node type and connections through JSON', () => {
   const document = diagram()
   document.nodes.push({
+    width: 360,
+    height: 240,
     id: 'io',
     type: 'input-output',
     position: { x: -10, y: 2.5 },

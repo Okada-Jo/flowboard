@@ -78,6 +78,25 @@ const editorSlice = createSlice({
 
       node.position = action.payload.position
     },
+    nodeDimensionsChanged(
+      state,
+      action: PayloadAction<{ id: string; width: number; height: number }>,
+    ) {
+      const { id, width, height } = action.payload
+      const node = state.nodes.find((node) => node.id === id)
+      if (
+        !node ||
+        !Number.isFinite(width) ||
+        !Number.isFinite(height) ||
+        width <= 0 ||
+        height <= 0 ||
+        (node.width === width && node.height === height)
+      )
+        return
+      recordHistory(state)
+      node.width = width
+      node.height = height
+    },
     nodeSelectionChanged(
       state,
       action: PayloadAction<{
@@ -372,6 +391,7 @@ export const {
   selectionDeleted,
   redo,
   nodePositionChanged,
+  nodeDimensionsChanged,
   historyTransactionStarted,
   historyTransactionCommitted,
   nodeLabelChanged,

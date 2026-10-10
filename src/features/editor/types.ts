@@ -13,6 +13,8 @@ export type FlowNode = {
     y: number
   }
   data: FlowNodeData
+  width?: number
+  height?: number
 }
 
 export type FlowEdge = {

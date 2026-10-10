@@ -28,6 +28,7 @@ import {
   nodeTypeChanged,
   nodeDeleted,
   nodePositionChanged,
+  nodeDimensionsChanged,
   nodeSelectionChanged,
   redo,
   undo,
@@ -51,6 +52,7 @@ type EditorCanvasProps = { onExport: () => void }
 function EditorCanvasInner({ onExport }: EditorCanvasProps) {
   const [editingNodeId, setEditingNodeId] = useState<string | null>(null)
   const isDraggingRef = useRef(false)
+  const isResizingRef = useRef(false)
   const [contextMenu, setContextMenu] = useState<{
     nodeId?: string
     x: number
@@ -96,7 +98,27 @@ function EditorCanvasInner({ onExport }: EditorCanvasProps) {
   })
 
   function handleNodesChange(changes: NodeChange[]) {
+    // Start before applying position changes from the top/left resize handles.
+    if (
+      changes.some(
+        (change) => change.type === 'dimensions' && change.resizing === true,
+      ) &&
+      !isResizingRef.current
+    ) {
+      isResizingRef.current = true
+      dispatch(historyTransactionStarted())
+    }
+
     for (const change of changes) {
+      // Ignore automatic DOM measurements; only explicit resizing is saved.
+      if (
+        change.type === 'dimensions' &&
+        change.resizing !== undefined &&
+        change.dimensions
+      ) {
+        dispatch(nodeDimensionsChanged({ id: change.id, ...change.dimensions }))
+      }
+
       if (change.type === 'position' && change.position) {
         if (change.dragging && !isDraggingRef.current) {
           isDraggingRef.current = true
@@ -128,6 +150,16 @@ function EditorCanvasInner({ onExport }: EditorCanvasProps) {
       if (change.type === 'remove') {
         dispatch(nodeDeleted(change.id))
       }
+    }
+
+    if (
+      isResizingRef.current &&
+      changes.some(
+        (change) => change.type === 'dimensions' && change.resizing === false,
+      )
+    ) {
+      isResizingRef.current = false
+      dispatch(historyTransactionCommitted())
     }
   }
 

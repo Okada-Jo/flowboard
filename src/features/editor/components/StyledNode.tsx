@@ -1,4 +1,10 @@
-import { Handle, Position, type Node, type NodeProps } from '@xyflow/react'
+import {
+  NodeResizer,
+  Handle,
+  Position,
+  type Node,
+  type NodeProps,
+} from '@xyflow/react'
 
 import type { FlowNodeData, FlowNodeType } from '../types'
 import { EditableNodeLabel } from './EditableNodeLabel'
@@ -21,6 +27,13 @@ export function StyledNode({ id, data, selected, kind }: StyledNodeProps) {
     <div
       className={`flow-node flow-node--${kind}${selected ? ' is-selected' : ''}`}
     >
+      <NodeResizer
+        isVisible={selected}
+        minWidth={160}
+        minHeight={kind === 'decision' ? 180 : kind === 'note' ? 148 : 100}
+        color="var(--color-focus)"
+        handleStyle={{ width: 10, height: 10, borderRadius: 0 }}
+      />
       <div className="flow-node__surface" />
       <Handle type="target" position={Position.Top} />
       <div className="flow-node__content">

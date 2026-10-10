@@ -53,3 +53,11 @@ it('imports an independent board and deletes only the requested board', async ()
   expect(await getBoard(original.id)).toBeUndefined()
   expect(await listBoards()).toEqual([imported])
 })
+
+it('persists resized dimensions when saving and reopening a board', async () => {
+  const board = await createBoard('Resizable', diagram())
+  const document = diagram()
+  document.nodes[0] = { ...document.nodes[0], width: 360, height: 240 }
+  await saveBoard(board.id, document)
+  expect((await getBoard(board.id))?.document).toEqual(document)
+})
