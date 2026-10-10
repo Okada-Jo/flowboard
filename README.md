@@ -137,6 +137,15 @@ TypeScript get ESLint auto-fixes followed by Prettier; JSON, CSS, HTML, Markdown
 and YAML get Prettier. Unresolved lint errors or warnings block the commit.
 Tests run separately and are not part of pre-commit.
 
+The hook uses [eslint_d](https://github.com/mantoni/eslint_d.js) to keep the
+project's ESLint and plugins loaded between commits, plus content-based lint
+and formatting caches in `node_modules/.cache/`. No lint rules are skipped.
+The first JavaScript/TypeScript commit after installation, a dependency change,
+or two hours of inactivity still pays the cold-start cost; subsequent commits
+reuse the process. Set `ESLINT_D_IDLE` to change the idle timeout in minutes.
+`npm run lint` still runs a fresh ESLint process for full-project validation.
+To stop the background process manually, run `npx --no-install eslint_d stop`.
+
 ### Testing
 
 Tests use Vitest and React Testing Library with jsdom and an isolated in-memory
