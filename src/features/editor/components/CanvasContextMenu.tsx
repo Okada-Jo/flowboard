@@ -3,42 +3,9 @@ import { createPortal } from 'react-dom'
 
 import type { FlowNodeType } from '../types'
 
-const items: {
-  type: FlowNodeType
-  label: string
-  name: string
-  symbol: string
-  color: string
-}[] = [
-  {
-    type: 'process',
-    label: 'New Process',
-    name: 'Process',
-    symbol: '▤',
-    color: 'process-color',
-  },
-  {
-    type: 'decision',
-    label: 'Decision?',
-    name: 'Decision',
-    symbol: '◇',
-    color: 'decision-color',
-  },
-  {
-    type: 'input-output',
-    label: 'Input / Output',
-    name: 'Input / Output',
-    symbol: '⇄',
-    color: 'io-color',
-  },
-  {
-    type: 'note',
-    label: 'Note',
-    name: 'Note',
-    symbol: '✎',
-    color: 'note-color',
-  },
-]
+import { nodeCatalog } from '../nodeCatalog'
+
+const items = nodeCatalog
 
 type Props = {
   x: number
@@ -149,7 +116,7 @@ export function CanvasContextMenu({
             className="tool-button"
             onClick={onRename}
           >
-            Change name
+            Edit text
           </button>
           <button
             type="button"
@@ -177,7 +144,7 @@ export function CanvasContextMenu({
             node ? onTypeChange(item.type) : onAdd(item.type, item.label)
           }
         >
-          <span className={`tool-symbol ${item.color}`} aria-hidden="true">
+          <span className="tool-symbol" aria-hidden="true">
             {item.symbol}
           </span>
           {node ? item.name : `Add ${item.name}`}

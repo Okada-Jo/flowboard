@@ -195,3 +195,35 @@ it('resizes and repositions a node in one undo step and preserves dimensions in 
     height: 200,
   })
 })
+
+it('preserves decision connections and their meaning when converting types, with reversible history', () => {
+  let state = reducer(
+    undefined,
+    actions.boardLoaded({
+      nodes: [
+        {
+          ...diagram().nodes[0],
+          type: 'decision',
+          data: {
+            label: 'Ready?',
+            outcomes: [
+              { id: 'yes', label: 'Approved' },
+              { id: 'no', label: 'Revise' },
+            ],
+          },
+        },
+        diagram().nodes[1],
+      ],
+      edges: [{ id: 'ab', source: 'a', target: 'b', sourceHandle: 'yes' }],
+    }),
+  )
+  const original = state.nodes
+  state = reducer(state, actions.nodeTypeChanged({ id: 'a', type: 'process' }))
+  expect(state.edges).toEqual([
+    { id: 'ab', source: 'a', target: 'b', label: 'Approved' },
+  ])
+  expect(state.nodes[0].data.outcomes).toEqual(original[0].data.outcomes)
+  state = reducer(state, actions.undo())
+  expect(state.nodes).toEqual(original)
+  expect(state.edges[0].sourceHandle).toBe('yes')
+})

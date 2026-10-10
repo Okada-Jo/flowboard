@@ -7,10 +7,14 @@ work locally in your browser. No account or backend service is required.
 ## Features
 
 - **Board management:** create, rename, and delete boards from the home page.
-- **Four node types:** Process, Decision, Input / Output, and Note.
+- **Purposeful nodes:** Steps with instructions, Decisions with labelled routes,
+  Notes for context, Checkpoints with readiness criteria, and Linked flows that
+  open detailed processes on other boards. Existing Input / Output nodes remain supported.
 - **Interactive canvas:** drag nodes, connect them, and use zoom and fit-view controls.
-- **Quick editing:** edit labels inline, change node types through context menus,
-  and copy, paste, or duplicate selected nodes with their internal connections.
+- **Direct editing:** click a title or body to write; Tab saves and advances,
+  Escape cancels the field. Selected cards expose Edit, Connect, Duplicate, and Delete.
+- **Reusable flows:** link existing boards or create a detailed flow from a card;
+  breadcrumbs take you back. Exports include reachable linked boards.
 - **Undo and redo:** step back and forward through diagram edits.
 - **Appearance:** choose Light, Dark, or System from either page header. Your
   preference is saved in localStorage; System follows your device’s appearance.
@@ -48,14 +52,20 @@ work with the app's browser-based routing.
 
 1. Click **+ New board** on the home page.
 2. Add nodes from the toolbar, or right-click the canvas to add one at that position.
-3. Drag nodes to arrange them. Drag from the bottom connector of one node to the
-   top connector of another to create a connection.
-4. Double-click a node's label to edit it. Press **Enter** to save or **Escape**
-   to cancel. Right-click a node for more actions, including changing its type.
-5. Click **Flowboard** in the header to return to your boards. Use **Edit** on a
-   board card to rename it.
-6. Use **Export** in the editor to download a `.flowboard.json` file. Use
-   **Import** on the home page to load an exported file as a new board.
+3. Drag a card by its header grip to move it. Select its border to show resize
+   handles and quick actions. Click any title or instructions field to edit.
+4. Connect cards by dragging their connection points, or use **Connect** in the
+   selected card's action bar. Decisions have separate labelled routes; add or
+   rename outcomes directly on the card. Disconnect a route before removing it.
+5. Add a **Note** for background information. Its connections are dotted
+   attachments rather than process routes. **Checkpoints** show manually verified
+   readiness; incomplete checkpoints have a dashed outgoing connection.
+6. Add a **Linked flow**, select another board, and choose **Open**. Alternatively,
+   create a new flow from the card. The header offers a return path, and edits are
+   saved before navigation. Unavailable links can be reassigned on the card.
+7. Use **Export** to download the board and reachable linked flows in one file.
+   Use **Import** on the home page to create independent copies with their links
+   preserved. Legacy version 1 files remain readable.
 
 ### Keyboard shortcuts
 
@@ -82,8 +92,8 @@ Boards are stored in the current browser's IndexedDB using Dexie. They are scope
 to the site's origin, so a different browser, device, hostname, or port has its
 own board collection. There is no cloud sync or shared editing.
 
-Autosave runs after a 500 ms pause in diagram changes. Allow it to finish before
-leaving the editor. Clearing site data removes locally stored boards; export
+Autosave runs after a 500 ms pause in diagram changes and flushes pending edits
+when leaving the editor. Clearing site data removes locally stored boards; export
 boards you want to keep or transfer. Import validates the Flowboard JSON format
 and creates a new board without overwriting an existing one.
 

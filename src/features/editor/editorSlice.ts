@@ -5,6 +5,7 @@ import type {
   FlowEdge,
   FlowNode,
   FlowNodeType,
+  FlowNodeData,
 } from './types'
 
 type EditorState = {
@@ -63,6 +64,38 @@ const editorSlice = createSlice({
   name: 'editor',
   initialState,
   reducers: {
+    nodeDataChanged(
+      state,
+      action: PayloadAction<{ id: string; changes: Partial<FlowNodeData> }>,
+    ) {
+      const node = state.nodes.find((node) => node.id === action.payload.id)
+      if (
+        !node ||
+        Object.entries(action.payload.changes).every(
+          ([key, value]) =>
+            JSON.stringify(node.data[key as keyof FlowNodeData]) ===
+            JSON.stringify(value),
+        )
+      )
+        return
+      recordHistory(state)
+      Object.assign(node.data, action.payload.changes)
+    },
+    nodeDuplicated(
+      state,
+      action: PayloadAction<{ id: string; newId: string }>,
+    ) {
+      const node = state.nodes.find((node) => node.id === action.payload.id)
+      if (!node) return
+      recordHistory(state)
+      state.nodes.push({
+        ...node,
+        id: action.payload.newId,
+        position: { x: node.position.x + 40, y: node.position.y + 40 },
+      })
+      state.selectedNodeIds = [action.payload.newId]
+      state.selectedEdgeIds = []
+    },
     nodePositionChanged(
       state,
       action: PayloadAction<{
@@ -163,6 +196,22 @@ const editorSlice = createSlice({
       const node = state.nodes.find((node) => node.id === action.payload.id)
       if (!node || node.type === action.payload.type) return
       recordHistory(state)
+      // Preserve branch meaning when converting a decision to another card.
+      if (node.type === 'decision' && action.payload.type !== 'decision') {
+        for (const edge of state.edges) {
+          if (edge.source === node.id && edge.sourceHandle) {
+            edge.label =
+              (
+                node.data.outcomes ?? [
+                  { id: 'yes', label: 'Yes' },
+                  { id: 'no', label: 'No' },
+                ]
+              ).find((outcome) => outcome.id === edge.sourceHandle)?.label ??
+              edge.label
+            delete edge.sourceHandle
+          }
+        }
+      }
       node.type = action.payload.type
     },
     nodeLabelChanged(
@@ -401,6 +450,8 @@ export const {
   edgeAdded,
   edgeDeleted,
   nodeAdded,
+  nodeDataChanged,
+  nodeDuplicated,
   selectAll,
   selectionCleared,
 } = editorSlice.actions

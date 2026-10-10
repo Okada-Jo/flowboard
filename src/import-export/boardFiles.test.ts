@@ -29,7 +29,7 @@ it('reports malformed JSON', () => {
 
 it.each([
   null,
-  { version: 2, board: { name: 'Board', ...diagram() } },
+  { version: 3, board: { name: 'Board', ...diagram() } },
   { version: 1, board: { name: '', ...diagram() } },
   { version: 1, board: { name: 'Board', nodes: [], edges: diagram().edges } },
   {

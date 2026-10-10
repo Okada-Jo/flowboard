@@ -1,20 +1,40 @@
-import type { DiagramDocument } from '../features/editor/types'
+import type { DiagramDocument, StoredBoard } from '../features/editor/types'
 import { flowboardFileSchema, type FlowboardFile } from './schema'
 
 export function createFlowboardFile(
   name: string,
   document: DiagramDocument,
+  context?: { id: string; boards: StoredBoard[] },
 ): FlowboardFile {
-  const file = {
-    version: 1 as const,
-    board: {
-      name,
-      nodes: document.nodes,
-      edges: document.edges,
-    },
+  const linkedBoards: NonNullable<FlowboardFile['linkedBoards']> = []
+  const visited = new Set(context ? [context.id] : [])
+  function collect(doc: DiagramDocument) {
+    for (const node of doc.nodes) {
+      const id = node.data.linkedBoardId
+      if (!id || visited.has(id)) continue
+      visited.add(id)
+      const board = context?.boards.find((board) => board.id === id)
+      if (!board) continue
+      linkedBoards.push({ id, name: board.name, ...board.document })
+      collect(board.document)
+    }
   }
-
-  return flowboardFileSchema.parse(file)
+  collect(document)
+  const extended =
+    linkedBoards.length > 0 ||
+    document.nodes.some(
+      (node) =>
+        node.type === 'checkpoint' ||
+        node.type === 'linked-flow' ||
+        node.data.outcomes ||
+        node.data.criteria,
+    ) ||
+    document.edges.some((edge) => edge.sourceHandle || edge.label)
+  return flowboardFileSchema.parse({
+    version: extended ? 2 : 1,
+    board: { ...(context ? { id: context.id } : {}), name, ...document },
+    ...(linkedBoards.length ? { linkedBoards } : {}),
+  })
 }
 
 export function downloadFlowboardFile(file: FlowboardFile): void {

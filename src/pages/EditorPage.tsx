@@ -1,108 +1,184 @@
 import { ThemeToggle } from '../theme/ThemeToggle'
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
-
-import { useAppDispatch, useAppSelector } from '../app/hooks'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { useStore } from 'react-redux'
+import type { RootState } from '../app/store'
+import { useAppDispatch } from '../app/hooks'
 import { EditorCanvas } from '../features/editor/components/EditorCanvas'
-import { boardLoaded } from '../features/editor/editorSlice'
-import { getBoard } from '../persistence/boardsRepository'
+import { boardLoaded, nodeDataChanged } from '../features/editor/editorSlice'
+import type { StoredBoard } from '../features/editor/types'
+import {
+  createBoard,
+  getBoard,
+  listBoards,
+  saveBoard,
+} from '../persistence/boardsRepository'
 import { useBoardAutosave } from '../persistence/useBoardAutosave'
 import {
   createFlowboardFile,
   downloadFlowboardFile,
 } from '../import-export/exportBoard'
 
+type Crumb = { id: string; name: string }
+function readTrail(state: unknown): Crumb[] {
+  const trail = (state as { trail?: unknown } | null)?.trail
+  return Array.isArray(trail)
+    ? trail.filter(
+        (item): item is Crumb =>
+          item && typeof item.id === 'string' && typeof item.name === 'string',
+      )
+    : []
+}
+
 export function EditorPage() {
   const { boardId } = useParams()
+  return boardId ? <BoardEditor key={boardId} boardId={boardId} /> : null
+}
+
+function BoardEditor({ boardId }: { boardId: string }) {
   const dispatch = useAppDispatch()
-
-  const [isLoading, setIsLoading] = useState(true)
-  const [boardName, setBoardName] = useState('')
-  const [boardLoadedSuccessfully, setBoardLoadedSuccessfully] = useState(false)
-
-  const nodes = useAppSelector((state) => state.editor.nodes)
-  const edges = useAppSelector((state) => state.editor.edges)
-
-  useBoardAutosave({
-    boardId,
-    enabled: boardLoadedSuccessfully,
-  })
+  const store = useStore<RootState>()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const trail = readTrail(location.state)
+  const [board, setBoard] = useState<StoredBoard | null>(null)
+  const [boards, setBoards] = useState<StoredBoard[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const saveError = useBoardAutosave({ boardId, enabled: Boolean(board) })
 
   useEffect(() => {
-    if (!boardId) {
-      return
+    let cancelled = false
+    void Promise.all([getBoard(boardId), listBoards()])
+      .then(([stored, all]) => {
+        if (cancelled) return
+        if (stored) {
+          dispatch(boardLoaded(stored.document))
+          setBoard(stored)
+        }
+        setBoards(all)
+        setLoading(false)
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setError('Could not load this board. Please reload to try again.')
+          setLoading(false)
+        }
+      })
+    return () => {
+      cancelled = true
     }
-
-    const currentBoardId = boardId
-
-    async function loadBoard() {
-      setIsLoading(true)
-      setBoardLoadedSuccessfully(false)
-
-      const board = await getBoard(currentBoardId)
-
-      if (board) {
-        dispatch(boardLoaded(board.document))
-        setBoardName(board.name)
-        setBoardLoadedSuccessfully(true)
-      } else {
-        setBoardName('')
-      }
-
-      setIsLoading(false)
-    }
-
-    void loadBoard()
   }, [boardId, dispatch])
 
-  function handleExport() {
-    const file = createFlowboardFile(boardName, {
-      nodes,
-      edges,
-    })
-
-    downloadFlowboardFile(file)
+  async function flush() {
+    if (!board) return
+    const { nodes, edges } = store.getState().editor
+    await saveBoard(boardId, { nodes, edges })
   }
-
-  if (isLoading) {
-    return (
-      <main className="flex h-screen items-center justify-center bg-page-loading text-content-muted">
-        Loading board...
-      </main>
+  async function open(id?: string) {
+    await flush()
+    if (!id) {
+      navigate('/')
+      return
+    }
+    if (!(await getBoard(id))) throw new Error('Board unavailable')
+    const existing = trail.findIndex((item) => item.id === id)
+    navigate(`/boards/${id}`, {
+      state: {
+        trail:
+          existing >= 0
+            ? trail.slice(0, existing)
+            : [...trail, { id: boardId, name: board?.name ?? 'Board' }],
+      },
+    })
+  }
+  async function createLinked(nodeId: string, name: string) {
+    const linked = await createBoard(name)
+    dispatch(
+      nodeDataChanged({ id: nodeId, changes: { linkedBoardId: linked.id } }),
+    )
+    setBoards((current) => [...current, linked])
+    await open(linked.id)
+  }
+  async function exportBoard() {
+    try {
+      const { nodes, edges } = store.getState().editor
+      const all = await listBoards()
+      downloadFlowboardFile(
+        createFlowboardFile(
+          board?.name ?? 'Board',
+          { nodes, edges },
+          { id: boardId, boards: all },
+        ),
+      )
+    } catch {
+      setError('Could not export this board. Please try again.')
+    }
+  }
+  function navigateSafely(id?: string) {
+    void open(id).catch(() =>
+      setError(
+        'Could not save or open the board. Your current board is still open.',
+      ),
     )
   }
 
+  if (loading)
+    return (
+      <main className="flex h-screen items-center justify-center">
+        Loading board…
+      </main>
+    )
   return (
     <main className="h-screen editor-page">
       <header className="editor-header flex h-16 items-center gap-4 border-b border-page-border px-5">
-        <Link to="/" className="brand shrink-0">
+        <button className="brand shrink-0" onClick={() => navigateSafely()}>
           <span className="brand-mark" aria-hidden="true">
             ⌘
           </span>{' '}
           Flowboard
-        </Link>
-
-        <span className="board-title min-w-0 truncate text-sm text-content-muted">
-          {boardName || 'Board not found'}
-        </span>
+        </button>
+        <nav aria-label="Flow navigation" className="flow-breadcrumbs">
+          {trail.map((item) => (
+            <span key={item.id}>
+              <button onClick={() => navigateSafely(item.id)}>
+                ← {item.name}
+              </button>
+              <span aria-hidden="true"> / </span>
+            </span>
+          ))}
+          <span aria-current="page">{board?.name ?? 'Board not found'}</span>
+        </nav>
         <div className="ml-auto flex shrink-0 items-center gap-3">
           <ThemeToggle />
           <button
-            type="button"
-            onClick={handleExport}
-            className="secondary-button ml-auto"
+            onClick={() => void exportBoard()}
+            disabled={!board}
+            className="secondary-button"
           >
             Export
           </button>
         </div>
       </header>
-
+      {(error || saveError) && (
+        <div role="alert" className="editor-error">
+          {error || saveError}
+        </div>
+      )}
       <div className="editor-body">
-        {boardName ? (
-          <EditorCanvas onExport={handleExport} />
+        {board ? (
+          <EditorCanvas
+            onExport={() => void exportBoard()}
+            navigation={{
+              boardId,
+              boards,
+              onOpen: open,
+              onCreate: createLinked,
+            }}
+          />
         ) : (
-          <div className="flex h-full items-center justify-center text-content-muted">
-            Board not found.
+          <div className="flex h-full items-center justify-center">
+            Board not found. Return to Flowboard to choose another board.
           </div>
         )}
       </div>

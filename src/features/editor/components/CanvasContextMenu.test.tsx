@@ -16,15 +16,16 @@ function props() {
   }
 }
 
-it('offers all four node types and board export', async () => {
+it('offers the five purposeful node types and board export', async () => {
   const callbacks = props()
   render(<CanvasContextMenu {...callbacks} />)
   const user = userEvent.setup()
   for (const [name, type, label] of [
-    ['Process', 'process', 'New Process'],
-    ['Decision', 'decision', 'Decision?'],
-    ['Input / Output', 'input-output', 'Input / Output'],
-    ['Note', 'note', 'Note'],
+    ['Step', 'process', 'Untitled step'],
+    ['Decision', 'decision', 'What happens next?'],
+    ['Note', 'note', ''],
+    ['Checkpoint', 'checkpoint', 'Ready to continue?'],
+    ['Linked flow', 'linked-flow', 'Explore a flow'],
   ]) {
     await user.click(screen.getByRole('menuitem', { name: `Add ${name}` }))
     expect(callbacks.onAdd).toHaveBeenLastCalledWith(type, label)
@@ -42,12 +43,13 @@ it('offers rename, selection and type changes for nodes', async () => {
     />,
   )
   const user = userEvent.setup()
-  expect(
-    screen.getByRole('menuitemradio', { name: 'Process' }),
-  ).toHaveAttribute('aria-checked', 'true')
+  expect(screen.getByRole('menuitemradio', { name: 'Step' })).toHaveAttribute(
+    'aria-checked',
+    'true',
+  )
   await user.click(screen.getByRole('menuitemradio', { name: 'Decision' }))
   expect(callbacks.onTypeChange).toHaveBeenCalledWith('decision')
-  await user.click(screen.getByRole('menuitem', { name: 'Change name' }))
+  await user.click(screen.getByRole('menuitem', { name: 'Edit text' }))
   await user.click(screen.getByRole('menuitem', { name: 'Add to selection' }))
   expect(callbacks.onRename).toHaveBeenCalledOnce()
   expect(callbacks.onSelect).toHaveBeenCalledOnce()
@@ -74,13 +76,15 @@ it('supports keyboard navigation, skips disabled actions and restores focus on c
     />,
   )
   const user = userEvent.setup()
-  expect(screen.getByRole('menuitem', { name: 'Change name' })).toHaveFocus()
+  expect(screen.getByRole('menuitem', { name: 'Edit text' })).toHaveFocus()
   await user.keyboard('{ArrowDown}')
-  expect(screen.getByRole('menuitemradio', { name: 'Process' })).toHaveFocus()
+  expect(screen.getByRole('menuitemradio', { name: 'Step' })).toHaveFocus()
   await user.keyboard('{End}')
-  expect(screen.getByRole('menuitemradio', { name: 'Note' })).toHaveFocus()
+  expect(
+    screen.getByRole('menuitemradio', { name: 'Linked flow' }),
+  ).toHaveFocus()
   await user.keyboard('{ArrowDown}')
-  expect(screen.getByRole('menuitem', { name: 'Change name' })).toHaveFocus()
+  expect(screen.getByRole('menuitem', { name: 'Edit text' })).toHaveFocus()
   await user.keyboard('{Escape}')
   expect(callbacks.onClose).toHaveBeenCalledOnce()
   unmount()

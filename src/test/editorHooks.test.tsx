@@ -93,7 +93,7 @@ it('debounces autosave and persists the latest document only', () => {
   })
 })
 
-it('does not autosave before loading and cancels pending saves on board changes or unmount', () => {
+it('does not autosave before loading and flushes pending saves on board changes or unmount', () => {
   vi.useFakeTimers()
   const { wrapper } = setup()
   const { rerender, unmount } = renderHook(useBoardAutosave, {
@@ -108,9 +108,11 @@ it('does not autosave before loading and cancels pending saves on board changes 
   act(() => vi.advanceTimersByTime(400))
   rerender({ boardId: 'new', enabled: true })
   act(() => vi.advanceTimersByTime(500))
-  expect(saveBoard).toHaveBeenCalledExactlyOnceWith('new', diagram())
+  expect(saveBoard).toHaveBeenCalledWith('old', diagram())
+  expect(saveBoard).toHaveBeenCalledWith('new', diagram())
   rerender({ boardId: 'pending', enabled: true })
   unmount()
   act(() => vi.advanceTimersByTime(500))
-  expect(saveBoard).toHaveBeenCalledTimes(1)
+  expect(saveBoard).toHaveBeenCalledTimes(3)
+  expect(saveBoard).toHaveBeenLastCalledWith('pending', diagram())
 })

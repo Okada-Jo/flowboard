@@ -71,3 +71,40 @@ export async function importBoard(
 
   return board
 }
+
+// Import a linked collection atomically and give every included board a new ID.
+export async function importFlowboardFile(
+  file: import('../import-export/schema').FlowboardFile,
+): Promise<StoredBoard> {
+  const records = [file.board, ...(file.linkedBoards ?? [])]
+  const ids = records.map(() => crypto.randomUUID())
+  const idMap = new Map(
+    records.flatMap((board, index) =>
+      board.id ? [[board.id, ids[index]]] : [],
+    ),
+  )
+  const now = new Date().toISOString()
+  const boards: StoredBoard[] = records.map((board, index) => ({
+    id: ids[index],
+    name: board.name,
+    createdAt: now,
+    updatedAt: now,
+    document: {
+      nodes: board.nodes.map((node) => ({
+        ...node,
+        data: {
+          ...node.data,
+          ...(node.data.linkedBoardId
+            ? {
+                linkedBoardId:
+                  idMap.get(node.data.linkedBoardId) ?? node.data.linkedBoardId,
+              }
+            : {}),
+        },
+      })),
+      edges: board.edges,
+    },
+  }))
+  await db.transaction('rw', db.boards, () => db.boards.bulkAdd(boards))
+  return boards[0]
+}

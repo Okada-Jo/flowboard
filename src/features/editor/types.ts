@@ -1,8 +1,17 @@
-export type FlowNodeType = 'process' | 'decision' | 'input-output' | 'note'
+export type FlowNodeType =
+  | 'process'
+  | 'decision'
+  | 'input-output'
+  | 'note'
+  | 'checkpoint'
+  | 'linked-flow'
 
 export type FlowNodeData = {
   label: string
   description?: string
+  outcomes?: { id: string; label: string }[]
+  criteria?: { id: string; label: string; done: boolean }[]
+  linkedBoardId?: string
 }
 
 export type FlowNode = {
@@ -21,6 +30,9 @@ export type FlowEdge = {
   id: string
   source: string
   target: string
+  sourceHandle?: string
+  targetHandle?: string
+  label?: string
 }
 
 export type DiagramDocument = {

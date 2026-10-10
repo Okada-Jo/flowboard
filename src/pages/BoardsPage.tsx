@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 
 import {
   createBoard,
+  importFlowboardFile,
   deleteBoard,
   listBoards,
   renameBoard,
@@ -99,10 +100,7 @@ export function BoardsPage() {
       return
     }
 
-    const importedBoard = await createBoard(result.file.board.name, {
-      nodes: result.file.board.nodes,
-      edges: result.file.board.edges,
-    })
+    const importedBoard = await importFlowboardFile(result.file)
 
     event.target.value = ''
 

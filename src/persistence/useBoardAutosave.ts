@@ -1,46 +1,55 @@
-import { useEffect } from 'react'
-import { useAppSelector } from '../app/hooks'
+import { useEffect, useState } from 'react'
+import { useStore } from 'react-redux'
+import type { RootState } from '../app/store'
 import { saveBoard } from './boardsRepository'
 
-type UseBoardAutosaveOptions = {
-  boardId: string | undefined
-  enabled: boolean
-}
+type UseBoardAutosaveOptions = { boardId: string | undefined; enabled: boolean }
 
 export function useBoardAutosave({
   boardId,
   enabled,
 }: UseBoardAutosaveOptions) {
-  const nodes = useAppSelector((state) => state.editor.nodes)
-  const edges = useAppSelector((state) => state.editor.edges)
-
+  const store = useStore<RootState>()
+  const [error, setError] = useState('')
   useEffect(() => {
-    console.log('autosave effect', {
-      boardId,
-      enabled,
-      nodes: nodes.length,
-      edges: edges.length,
+    if (!boardId || !enabled) return
+    let editor = store.getState().editor
+    let document = { nodes: editor.nodes, edges: editor.edges }
+    let timer: ReturnType<typeof setTimeout> | undefined
+    let active = true
+    function save() {
+      timer = undefined
+      void saveBoard(boardId!, document)
+        .then(() => {
+          if (active) setError('')
+        })
+        .catch(() => {
+          if (active)
+            setError(
+              'Changes could not be saved. Please try again before leaving.',
+            )
+        })
+    }
+    function schedule() {
+      clearTimeout(timer)
+      timer = setTimeout(save, 500)
+    }
+    schedule()
+    const unsubscribe = store.subscribe(() => {
+      const next = store.getState().editor
+      if (next.nodes === editor.nodes && next.edges === editor.edges) return
+      editor = next
+      document = { nodes: next.nodes, edges: next.edges }
+      schedule()
     })
-
-    if (!boardId || !enabled) {
-      return
-    }
-
-    const timeoutId = window.setTimeout(() => {
-      console.log('saving board', {
-        boardId,
-        nodes: nodes.length,
-        edges: edges.length,
-      })
-
-      void saveBoard(boardId, {
-        nodes,
-        edges,
-      })
-    }, 500)
-
     return () => {
-      window.clearTimeout(timeoutId)
+      active = false
+      unsubscribe()
+      if (timer !== undefined) {
+        clearTimeout(timer)
+        save()
+      }
     }
-  }, [boardId, enabled, nodes, edges])
+  }, [boardId, enabled, store])
+  return error
 }
