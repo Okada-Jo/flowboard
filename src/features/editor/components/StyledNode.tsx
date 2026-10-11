@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
 import {
   NodeResizer,
   NodeToolbar,
@@ -23,7 +23,14 @@ import { InlineText } from './InlineText'
 
 type StyledNodeProps = NodeProps<Node<FlowNodeData>> & { kind: FlowNodeType }
 
-export function StyledNode({ id, data, selected, kind }: StyledNodeProps) {
+export function StyledNode({
+  id,
+  data,
+  selected,
+  kind,
+  width,
+  height,
+}: StyledNodeProps) {
   const dispatch = useAppDispatch()
   const nodes = useAppSelector((state) => state.editor.nodes)
   const [connecting, setConnecting] = useState(false)
@@ -58,7 +65,16 @@ export function StyledNode({ id, data, selected, kind }: StyledNodeProps) {
   )
   const editing = editingNodeId === id
 
+  const previousLayout = useRef({ data, kind })
   useEffect(() => {
+    // The initial ResizeObserver measures all cards together for fitView.
+    // A per-card forced measurement on mount fits only the first card.
+    if (
+      previousLayout.current.data === data &&
+      previousLayout.current.kind === kind
+    )
+      return
+    previousLayout.current = { data, kind }
     updateInternals(id)
   }, [id, data, kind, updateInternals])
 
@@ -187,14 +203,13 @@ export function StyledNode({ id, data, selected, kind }: StyledNodeProps) {
         onScroll={() => updateInternals(id)}
       >
         <InlineText
-          key={editing ? 'focused-title' : 'title'}
           value={data.label}
           label="Node title"
           placeholder={
             kind === 'note' ? 'Title (optional)' : 'Give this a title…'
           }
           className="flow-node__label"
-          autoFocus={editing}
+          autoFocus={editing && Boolean(width && height)}
           onFinished={() => {
             if (editing) setEditingNodeId(null)
           }}
@@ -387,8 +402,12 @@ export function StyledNode({ id, data, selected, kind }: StyledNodeProps) {
             {linkedBoard && (
               <>
                 <p className="node-hint">
-                  {linkedBoard.document.nodes.length} nodes · Starts at{' '}
-                  {entry?.data.label || 'an empty flow'}
+                  {linkedBoard.document.nodes.length} nodes ·{' '}
+                  {entry
+                    ? `Starts at ${entry.data.label || 'an untitled step'}`
+                    : linkedBoard.document.nodes.length
+                      ? 'No entry step'
+                      : 'Empty flow'}
                 </p>
                 <button
                   className="node-open-button"

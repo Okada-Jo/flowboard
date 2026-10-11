@@ -1,7 +1,7 @@
 import { act, render } from '@testing-library/react'
 import { configureStore } from '@reduxjs/toolkit'
 import { Provider } from 'react-redux'
-import type { NodeChange, Connection, Edge } from '@xyflow/react'
+import type { NodeChange, Connection, Edge, Node } from '@xyflow/react'
 import { expect, it, vi } from 'vitest'
 import reducer, {
   boardLoaded,
@@ -16,6 +16,7 @@ const canvas = vi.hoisted(() => ({
   onNodesChange: vi.fn<(changes: NodeChange[]) => void>(),
   onConnect: vi.fn<(connection: Connection) => void>(),
   edges: [] as Edge[],
+  nodes: [] as Node[],
 }))
 
 vi.mock('@xyflow/react', () => ({
@@ -23,10 +24,12 @@ vi.mock('@xyflow/react', () => ({
     onNodesChange: typeof canvas.onNodesChange
     onConnect: typeof canvas.onConnect
     edges: Edge[]
+    nodes: Node[]
   }) => {
     canvas.onNodesChange = props.onNodesChange
     canvas.onConnect = props.onConnect
     canvas.edges = props.edges
+    canvas.nodes = props.nodes
     return null
   },
   ReactFlowProvider: ({ children }: { children: React.ReactNode }) => children,
@@ -154,4 +157,43 @@ it('persists named decision routes, updates labels, and distinguishes notes and 
   expect(
     canvas.edges.find((edge) => edge.id === 'ab')?.style?.strokeDasharray,
   ).toBeUndefined()
+})
+
+it('retains canvas measurements through edits without saving them as manual sizes', () => {
+  const store = configureStore({ reducer: { editor: reducer } })
+  store.dispatch(boardLoaded(diagram()))
+  render(
+    <Provider store={store}>
+      <EditorCanvas onExport={() => {}} />
+    </Provider>,
+  )
+  act(() =>
+    canvas.onNodesChange([
+      { type: 'dimensions', id: 'a', dimensions: { width: 280, height: 150 } },
+    ]),
+  )
+  expect(canvas.nodes[0].measured).toEqual({ width: 280, height: 150 })
+  const measuredNode = canvas.nodes[0]
+  act(() =>
+    canvas.onNodesChange([
+      { type: 'dimensions', id: 'a', dimensions: { width: 280, height: 150 } },
+    ]),
+  )
+  expect(canvas.nodes[0]).toBe(measuredNode)
+  act(() => {
+    store.dispatch(nodeDataChanged({ id: 'a', changes: { label: 'Edited' } }))
+  })
+  expect(canvas.nodes[0]).toMatchObject({
+    measured: { width: 280, height: 150 },
+    data: { label: 'Edited' },
+  })
+  expect(store.getState().editor.nodes[0]).not.toHaveProperty('measured')
+  expect(store.getState().editor.nodes[0]).not.toHaveProperty('width')
+  act(() => {
+    store.dispatch(undo())
+  })
+  expect(canvas.nodes[0]).toMatchObject({
+    measured: { width: 280, height: 150 },
+    data: { label: 'Start' },
+  })
 })

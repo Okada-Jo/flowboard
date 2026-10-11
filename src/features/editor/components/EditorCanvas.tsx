@@ -1,5 +1,5 @@
 import { useThemePreference } from '../../../theme/theme'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 
 import { NodeEditingContext } from './NodeEditingContext'
 import { CanvasContextMenu } from './CanvasContextMenu'
@@ -30,6 +30,7 @@ import {
   nodePositionChanged,
   nodeDimensionsChanged,
   nodeSelectionChanged,
+  selectionCleared,
   redo,
   undo,
 } from '../editorSlice'
@@ -47,6 +48,8 @@ import { InputOutputNode } from '../nodes/InputOutputNode'
 import { DecisionNode } from '../nodes/DecisionNode'
 import type { FlowNodeType } from '../types'
 
+const fitViewOptions = { maxZoom: 1, padding: 0.2 }
+
 const nodeTypes = {
   process: ProcessNode,
   decision: DecisionNode,
@@ -60,6 +63,11 @@ type EditorCanvasProps = { onExport: () => void; navigation?: FlowNavigation }
 
 function EditorCanvasInner({ onExport, navigation }: EditorCanvasProps) {
   const [editingNodeId, setEditingNodeId] = useState<string | null>(null)
+  // React Flow needs measured bounds on controlled nodes across renders.
+  // These are canvas state, not user-set dimensions to persist or undo.
+  const [measurements, setMeasurements] = useState<
+    Record<string, { width: number; height: number }>
+  >({})
   const isDraggingRef = useRef(false)
   const isResizingRef = useRef(false)
   const [contextMenu, setContextMenu] = useState<{
@@ -88,11 +96,16 @@ function EditorCanvasInner({ onExport, navigation }: EditorCanvasProps) {
 
   const selectionCount = selectedNodeIds.length + selectedEdgeIds.length
 
-  const canvasNodes = nodes.map((node) => ({
-    ...node,
-    dragHandle: '.node-drag-handle',
-    selected: selectedNodeIds.includes(node.id),
-  }))
+  const canvasNodes = useMemo(
+    () =>
+      nodes.map((node) => ({
+        ...node,
+        measured: measurements[node.id],
+        dragHandle: '.node-drag-handle',
+        selected: selectedNodeIds.includes(node.id),
+      })),
+    [nodes, selectedNodeIds, measurements],
+  )
 
   const canvasEdges = edges.map((edge) => {
     const selected = selectedEdgeIds.includes(edge.id)
@@ -123,6 +136,18 @@ function EditorCanvasInner({ onExport, navigation }: EditorCanvasProps) {
   })
 
   function handleNodesChange(changes: NodeChange[]) {
+    setMeasurements((current) => {
+      let next = current
+      for (const change of changes) {
+        if (change.type !== 'dimensions' || !change.dimensions) continue
+        const previous = next[change.id]
+        const { width, height } = change.dimensions
+        if (previous?.width === width && previous?.height === height) continue
+        if (next === current) next = { ...current }
+        next[change.id] = { width, height }
+      }
+      return next
+    })
     // Start before applying position changes from the top/left resize handles.
     if (
       changes.some(
@@ -244,6 +269,7 @@ function EditorCanvasInner({ onExport, navigation }: EditorCanvasProps) {
         },
       }),
     )
+    dispatch(selectionCleared())
     dispatch(nodeSelectionChanged({ id, selected: true }))
     setEditingNodeId(id)
   }
@@ -285,9 +311,10 @@ function EditorCanvasInner({ onExport, navigation }: EditorCanvasProps) {
           onMoveStart={closeContextMenu}
           deleteKeyCode={null}
           fitView
+          fitViewOptions={fitViewOptions}
         >
           <Background gap={24} size={1} color="var(--color-grid)" />
-          <Controls />
+          <Controls fitViewOptions={fitViewOptions} />
           {contextMenu && (
             <CanvasContextMenu
               x={contextMenu.x}

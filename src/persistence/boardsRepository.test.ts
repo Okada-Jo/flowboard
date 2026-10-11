@@ -1,10 +1,13 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { db } from './db'
+import { createFlowboardFile } from '../import-export/exportBoard'
+import { parseFlowboardFile } from '../import-export/importBoard'
 import {
   createBoard,
   deleteBoard,
   getBoard,
   importBoard,
+  importFlowboardFile,
   listBoards,
   renameBoard,
   saveBoard,
@@ -63,9 +66,6 @@ it('persists resized dimensions when saving and reopening a board', async () => 
 })
 
 it('exports and imports linked flows including cycles, remaps board IDs and preserves semantic node data', async () => {
-  const { createFlowboardFile } = await import('../import-export/exportBoard')
-  const { parseFlowboardFile } = await import('../import-export/importBoard')
-  const { importFlowboardFile } = await import('./boardsRepository')
   const root = await createBoard('Overview')
   const child = await createBoard('Detail')
   root.document = {

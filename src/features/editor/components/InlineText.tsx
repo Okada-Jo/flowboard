@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 
 type Props = {
   value: string
@@ -25,11 +25,18 @@ export function InlineText({
 }: Props) {
   const [draft, setDraft] = useState<string | null>(null)
   const cancelled = useRef(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  useLayoutEffect(() => {
+    if (!autoFocus) return
+    const field = multiline ? textareaRef.current : inputRef.current
+    field?.focus({ preventScroll: true })
+    field?.select()
+  }, [autoFocus, multiline])
   const props = {
     'aria-label': label,
     placeholder,
     value: draft ?? value,
-    autoFocus,
     className: `nodrag nopan inline-text ${className}`,
     onFocus: (
       event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -66,9 +73,10 @@ export function InlineText({
   return multiline ? (
     <textarea
       {...props}
+      ref={textareaRef}
       rows={Math.max(2, (draft ?? value).split('\n').length)}
     />
   ) : (
-    <input {...props} />
+    <input {...props} ref={inputRef} />
   )
 }

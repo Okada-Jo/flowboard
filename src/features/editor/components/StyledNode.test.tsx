@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import { NodeEditingContext } from './NodeEditingContext'
 import { configureStore } from '@reduxjs/toolkit'
 import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -19,27 +21,34 @@ vi.mock('@xyflow/react', () => ({
   useUpdateNodeInternals: () => update,
 }))
 
-function setup(node: FlowNode, edges: FlowEdge[] = []) {
+function setup(node: FlowNode, edges: FlowEdge[] = [], editing = false) {
   const store = configureStore({ reducer: { editor: reducer } })
   store.dispatch(boardLoaded({ nodes: [node], edges }))
   function Card() {
+    const [editingNodeId, setEditingNodeId] = useState<string | null>(
+      editing ? node.id : null,
+    )
     const current = useAppSelector((state) => state.editor.nodes[0])
     return (
-      <StyledNode
-        id={current.id}
-        data={current.data}
-        kind={current.type}
-        type={current.type}
-        selected={true}
-        dragging={false}
-        isConnectable={true}
-        selectable={true}
-        deletable={true}
-        draggable={true}
-        zIndex={0}
-        positionAbsoluteX={0}
-        positionAbsoluteY={0}
-      />
+      <NodeEditingContext.Provider value={{ editingNodeId, setEditingNodeId }}>
+        <StyledNode
+          id={current.id}
+          data={current.data}
+          kind={current.type}
+          type={current.type}
+          selected={true}
+          dragging={false}
+          isConnectable={true}
+          selectable={true}
+          deletable={true}
+          draggable={true}
+          zIndex={0}
+          positionAbsoluteX={0}
+          positionAbsoluteY={0}
+          width={280}
+          height={200}
+        />
+      </NodeEditingContext.Provider>
     )
   }
   render(
@@ -134,4 +143,17 @@ it('tracks manually checked readiness and restores criteria through undo', async
   })
   expect(screen.getByRole('checkbox')).not.toBeChecked()
   expect(screen.getByRole('status')).toHaveTextContent('Not ready')
+})
+
+it('starts a new card in title editing and keeps focus in the body after Tab', async () => {
+  const store = setup(node, [], true)
+  const user = userEvent.setup()
+  const title = screen.getByRole('textbox', { name: 'Node title' })
+  expect(title).toHaveFocus()
+  await user.keyboard('New step{Tab}')
+  expect(store.getState().editor.nodes[0].data.label).toBe('New step')
+  expect(screen.getByRole('textbox', { name: 'Node title' })).toBe(title)
+  expect(screen.getByRole('textbox', { name: 'Instructions' })).toHaveFocus()
+  await user.click(screen.getByRole('button', { name: 'Edit' }))
+  expect(title).toHaveFocus()
 })
