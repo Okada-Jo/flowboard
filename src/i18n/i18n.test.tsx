@@ -42,15 +42,35 @@ describe('translations', () => {
   it('switches immediately, persists the preference, and updates the document language', () => {
     setLanguage('en')
     render(<LanguageToggle />)
-    fireEvent.change(screen.getByRole('combobox', { name: 'Language' }), {
-      target: { value: 'de' },
-    })
-    expect(screen.getByRole('combobox', { name: 'Sprache' })).toHaveValue('de')
+    fireEvent.mouseEnter(screen.getByRole('button', { name: 'Language' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Deutsch' }))
+    expect(screen.getByRole('button', { name: 'Sprache' })).toHaveTextContent(
+      'Deutsch',
+    )
+    expect(screen.getByRole('button', { name: 'Sprache' })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    )
     expect(localStorage.getItem('flowboard-language')).toBe('de')
     expect(document.documentElement.lang).toBe('de')
     expect(translate('Rename {name}', { name: 'My board' })).toBe(
       'My board umbenennen',
     )
+  })
+
+  it('opens on hover, closes on leaving, and supports keyboard dismissal', () => {
+    render(<LanguageToggle />)
+    const trigger = screen.getByRole('button', { name: 'Language' })
+    fireEvent.mouseEnter(trigger)
+    expect(screen.getByRole('button', { name: '日本語' })).toBeVisible()
+    fireEvent.mouseLeave(trigger.parentElement!)
+    expect(trigger).toHaveAttribute('aria-expanded', 'false')
+    fireEvent.click(trigger)
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Deutsch' }), {
+      key: 'Escape',
+    })
+    expect(trigger).toHaveAttribute('aria-expanded', 'false')
+    expect(trigger).toHaveFocus()
   })
 
   it('works when storage is unavailable', () => {

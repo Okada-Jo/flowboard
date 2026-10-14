@@ -61,6 +61,7 @@ button {
 }
 button,
 a,
+.secondary-button,
 [role='button'] {
   transition:
     background 140ms,
@@ -104,6 +105,7 @@ a:focus-visible,
 }
 .primary-button,
 .secondary-button {
+  cursor: pointer;
   padding: 10px 17px;
   border: 2px solid var(--color-ink);
   border-radius: 0;
@@ -121,13 +123,12 @@ a:focus-visible,
 }
 .primary-button:hover,
 .secondary-button:hover {
-  transform: translate(-1px, -1px);
-  box-shadow: 5px 5px 0 var(--color-ink);
+  box-shadow: 4px 4px 0 var(--color-ink);
 }
 .primary-button:active,
 .secondary-button:active {
-  transform: translate(3px, 3px);
-  box-shadow: none;
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 var(--color-ink);
 }
 .collection-heading {
   margin-bottom: 32px;
@@ -706,4 +707,39 @@ textarea.inline-text {
   max-width: 240px;
   background: var(--color-input);
   padding: 5px;
+}
+
+.language-menu {
+  position: relative;
+}
+.language-menu-popover {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 1001;
+  min-width: 150px;
+  padding-top: 8px;
+}
+.language-menu-options {
+  padding: 5px;
+  border: 2px solid var(--color-ink);
+  background: var(--color-surface);
+  box-shadow: 3px 3px 0 var(--color-ink);
+}
+.language-menu-options button {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  padding: 8px 12px;
+  text-align: left;
+  font-size: 12px;
+}
+.language-menu-options button:hover,
+.language-menu-options button:focus-visible,
+.language-menu-options button[aria-pressed='true'] {
+  background: var(--color-surface-hover);
+}
+.language-menu-options button:focus-visible {
+  outline-offset: -2px;
 }
