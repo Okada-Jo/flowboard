@@ -1,3 +1,5 @@
+import { LanguageToggle } from '../i18n/LanguageToggle'
+import { useTranslation } from '../i18n/i18n'
 import { ThemeToggle } from '../theme/ThemeToggle'
 import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -13,6 +15,8 @@ import type { StoredBoard } from '../features/editor/types'
 import { parseFlowboardFile } from '../import-export/importBoard'
 
 export function BoardsPage() {
+  const { t, language } = useTranslation()
+
   const fileInputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
 
@@ -33,7 +37,7 @@ export function BoardsPage() {
   }, [])
 
   async function handleCreateBoard() {
-    const board = await createBoard('Untitled Board')
+    const board = await createBoard(t('Untitled Board'))
 
     navigate(`/boards/${board.id}`)
   }
@@ -70,7 +74,7 @@ export function BoardsPage() {
 
   async function handleDeleteBoard(board: StoredBoard) {
     const confirmed = window.confirm(
-      `Delete "${board.name}"? This cannot be undone.`,
+      t('Delete "{name}"? This cannot be undone.', { name: board.name }),
     )
 
     if (!confirmed) {
@@ -95,7 +99,7 @@ export function BoardsPage() {
     const result = parseFlowboardFile(text)
 
     if (!result.success) {
-      window.alert(result.error)
+      window.alert(t(result.error))
       event.target.value = ''
       return
     }
@@ -118,6 +122,7 @@ export function BoardsPage() {
             Flowboard
           </div>
           <div className="flex flex-wrap items-center gap-3">
+            <LanguageToggle />
             <ThemeToggle />
             <input
               ref={fileInputRef}
@@ -134,7 +139,7 @@ export function BoardsPage() {
               onClick={() => fileInputRef.current?.click()}
               className="secondary-button"
             >
-              Import
+              {t('Import')}
             </button>
 
             <button
@@ -142,27 +147,27 @@ export function BoardsPage() {
               onClick={handleCreateBoard}
               className="primary-button"
             >
-              + New board
+              {t('+ New board')}
             </button>
           </div>
         </header>
 
         <div className="collection-heading">
           <h1>
-            Boards
+            {t('Boards')}
             <span className="board-count">
               {String(boards.length).padStart(2, '0')}
             </span>
           </h1>
         </div>
         {isLoading ? (
-          <p className="text-sm text-content-muted">Loading boards...</p>
+          <p className="text-sm text-content-muted">{t('Loading boards...')}</p>
         ) : boards.length === 0 ? (
           <div className="empty-state p-16 text-center">
-            <p className="text-content-secondary">No boards yet.</p>
+            <p className="text-content-secondary">{t('No boards yet.')}</p>
 
             <p className="mt-1 text-sm text-content-muted">
-              Create your first board to start diagramming.
+              {t('Create your first board to start diagramming.')}
             </p>
           </div>
         ) : (
@@ -223,9 +228,9 @@ export function BoardsPage() {
                           handleStartRename(board)
                         }}
                         className="rounded px-2 py-1 text-sm text-content-muted hover:bg-action-hover hover:text-content-strong"
-                        aria-label={`Rename ${board.name}`}
+                        aria-label={t('Rename {name}', { name: board.name })}
                       >
-                        Edit
+                        {t('Edit')}
                       </button>
 
                       <button
@@ -235,16 +240,18 @@ export function BoardsPage() {
                           void handleDeleteBoard(board)
                         }}
                         className="rounded px-2 py-1 text-sm text-content-muted hover:bg-danger-subtle hover:text-danger"
-                        aria-label={`Delete ${board.name}`}
+                        aria-label={t('Delete {name}', { name: board.name })}
                       >
-                        Delete
+                        {t('Delete')}
                       </button>
                     </div>
                   )}
                 </div>
 
                 <div className="mt-3 text-xs text-content-muted">
-                  Updated {new Date(board.updatedAt).toLocaleString()}
+                  {t('Updated {date}', {
+                    date: new Date(board.updatedAt).toLocaleString(language),
+                  })}
                 </div>
               </div>
             ))}

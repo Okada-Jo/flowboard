@@ -1,3 +1,4 @@
+import { useTranslation } from '../../../i18n/i18n'
 import { useThemePreference } from '../../../theme/theme'
 import { useCallback, useMemo, useRef, useState } from 'react'
 
@@ -62,6 +63,8 @@ const nodeTypes = {
 type EditorCanvasProps = { onExport: () => void; navigation?: FlowNavigation }
 
 function EditorCanvasInner({ onExport, navigation }: EditorCanvasProps) {
+  const { t } = useTranslation()
+
   const [editingNodeId, setEditingNodeId] = useState<string | null>(null)
   // React Flow needs measured bounds on controlled nodes across renders.
   // These are canvas state, not user-set dimensions to persist or undo.
@@ -123,8 +126,8 @@ function EditorCanvasInner({ onExport, navigation }: EditorCanvasProps) {
     return {
       ...edge,
       label: attachment
-        ? 'Note'
-        : (outcome ?? (waiting ? 'Not ready' : edge.label)),
+        ? t('Note')
+        : (outcome ?? (waiting ? t('Not ready') : edge.label)),
       selected,
       style: {
         stroke: selected ? 'var(--color-edge-selected)' : 'var(--color-edge)',
@@ -280,6 +283,13 @@ function EditorCanvasInner({ onExport, navigation }: EditorCanvasProps) {
         <ReactFlow
           className="flow-canvas"
           colorMode={theme}
+          ariaLabelConfig={{
+            'controls.ariaLabel': t('Canvas controls'),
+            'controls.zoomIn.ariaLabel': t('Zoom in'),
+            'controls.zoomOut.ariaLabel': t('Zoom out'),
+            'controls.fitView.ariaLabel': t('Fit view'),
+            'controls.interactive.ariaLabel': t('Toggle interactivity'),
+          }}
           nodes={canvasNodes}
           edges={canvasEdges}
           nodeTypes={nodeTypes}
@@ -372,14 +382,14 @@ function EditorCanvasInner({ onExport, navigation }: EditorCanvasProps) {
                 <button
                   key={item.type}
                   type="button"
-                  title={item.hint}
-                  onClick={() => handleAddNode(item.type, item.label)}
+                  title={t(item.hint)}
+                  onClick={() => handleAddNode(item.type, t(item.label))}
                   className="tool-button"
                 >
                   <span className="tool-symbol" aria-hidden="true">
                     {item.symbol}
                   </span>{' '}
-                  {item.name}
+                  {t(item.name)}
                 </button>
               ))}
 
@@ -388,7 +398,7 @@ function EditorCanvasInner({ onExport, navigation }: EditorCanvasProps) {
                 onClick={() => dispatch(undo())}
                 className="tool-button"
               >
-                Undo
+                {t('Undo')}
               </button>
 
               <button
@@ -396,11 +406,11 @@ function EditorCanvasInner({ onExport, navigation }: EditorCanvasProps) {
                 onClick={() => dispatch(redo())}
                 className="tool-button"
               >
-                Redo
+                {t('Redo')}
               </button>
               {selectionCount > 0 && (
                 <span className="selection-count">
-                  {selectionCount} selected
+                  {t('{count} selected', { count: selectionCount })}
                 </span>
               )}
             </div>

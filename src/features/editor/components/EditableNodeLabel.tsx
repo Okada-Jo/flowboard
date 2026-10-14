@@ -1,3 +1,4 @@
+import { useTranslation } from '../../../i18n/i18n'
 import { useContext, useState } from 'react'
 
 import { useAppDispatch } from '../../../app/hooks'
@@ -17,6 +18,8 @@ export function EditableNodeLabel({
   className,
   inputClassName,
 }: EditableNodeLabelProps) {
+  const { t } = useTranslation()
+
   const dispatch = useAppDispatch()
 
   const { editingNodeId, setEditingNodeId } = useContext(NodeEditingContext)
@@ -46,7 +49,7 @@ export function EditableNodeLabel({
     return (
       <input
         autoFocus
-        aria-label="Node name"
+        aria-label={t('Node name')}
         onFocus={(event) => {
           setDraftLabel(label)
           event.currentTarget.select()

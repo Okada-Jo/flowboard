@@ -1,3 +1,4 @@
+import { useTranslation } from '../../../i18n/i18n'
 import { useContext, useEffect, useRef, useState } from 'react'
 import {
   NodeResizer,
@@ -31,6 +32,8 @@ export function StyledNode({
   width,
   height,
 }: StyledNodeProps) {
+  const { t } = useTranslation()
+
   const dispatch = useAppDispatch()
   const nodes = useAppSelector((state) => state.editor.nodes)
   const [connecting, setConnecting] = useState(false)
@@ -42,7 +45,7 @@ export function StyledNode({
   const [error, setError] = useState('')
   const updateInternals = useUpdateNodeInternals()
   const details = nodeCatalog.find((item) => item.type === kind) ?? {
-    name: 'Input / Output',
+    name: t('Input / Output'),
     symbol: '⇄',
   }
   const outcomes = outcomesFor(data)
@@ -105,32 +108,37 @@ export function StyledNode({
         handleStyle={{ width: 10, height: 10, borderRadius: 0 }}
       />
       <NodeToolbar isVisible={selected}>
-        <div className="node-actions nodrag nopan" aria-label="Node actions">
-          <button onClick={() => setEditingNodeId(id)}>Edit</button>
+        <div
+          className="node-actions nodrag nopan"
+          aria-label={t('Node actions')}
+        >
+          <button onClick={() => setEditingNodeId(id)}>{t('Edit')}</button>
           <button
             aria-expanded={connecting}
             onClick={() => setConnecting((value) => !value)}
           >
-            Connect
+            {t('Connect')}
           </button>
           <button
             onClick={() =>
               dispatch(nodeDuplicated({ id, newId: crypto.randomUUID() }))
             }
           >
-            Duplicate
+            {t('Duplicate')}
           </button>
-          <button onClick={() => dispatch(nodeDeleted(id))}>Delete</button>
+          <button onClick={() => dispatch(nodeDeleted(id))}>
+            {t('Delete')}
+          </button>
         </div>
         {connecting && (
           <div
             className="node-connect-picker nodrag nopan"
             role="group"
-            aria-label="Connect this node"
+            aria-label={t('Connect this node')}
           >
             {kind === 'decision' && (
               <select
-                aria-label="Route"
+                aria-label={t('Route')}
                 value={
                   outcomes.some((item) => item.id === route)
                     ? route
@@ -146,7 +154,7 @@ export function StyledNode({
               </select>
             )}
             <select
-              aria-label="Connect to"
+              aria-label={t('Connect to')}
               defaultValue=""
               onChange={(event) => {
                 if (!event.target.value) return
@@ -169,12 +177,12 @@ export function StyledNode({
                 setConnecting(false)
               }}
             >
-              <option value="">Choose a destination…</option>
+              <option value="">{t('Choose a destination…')}</option>
               {nodes
                 .filter((node) => node.id !== id)
                 .map((node) => (
                   <option key={node.id} value={node.id}>
-                    {node.data.label || 'Untitled note'}
+                    {node.data.label || t('Untitled note')}
                   </option>
                 ))}
             </select>
@@ -185,14 +193,16 @@ export function StyledNode({
       <Handle
         type="target"
         position={Position.Top}
-        aria-label={kind === 'note' ? 'Attach note' : 'Incoming connection'}
+        aria-label={
+          kind === 'note' ? t('Attach note') : t('Incoming connection')
+        }
       />
       <header
         className="flow-node__type node-drag-handle"
-        title="Drag here to move"
+        title={t('Drag here to move')}
       >
         <span aria-hidden="true">{details.symbol}</span>
-        {details.name}
+        {t(details.name)}
         <span className="node-grip" aria-hidden="true">
           ⠿
         </span>
@@ -204,9 +214,9 @@ export function StyledNode({
       >
         <InlineText
           value={data.label}
-          label="Node title"
+          label={t('Node title')}
           placeholder={
-            kind === 'note' ? 'Title (optional)' : 'Give this a title…'
+            kind === 'note' ? t('Title (optional)') : t('Give this a title…')
           }
           className="flow-node__label"
           autoFocus={editing && Boolean(width && height)}
@@ -217,21 +227,21 @@ export function StyledNode({
         />
         <InlineText
           value={data.description ?? ''}
-          label={kind === 'note' ? 'Note text' : 'Instructions'}
+          label={kind === 'note' ? t('Note text') : t('Instructions')}
           placeholder={
             kind === 'note'
-              ? 'Write a note…'
+              ? t('Write a note…')
               : kind === 'decision'
-                ? 'Add context for this choice…'
-                : 'Add instructions…'
+                ? t('Add context for this choice…')
+                : t('Add instructions…')
           }
           multiline
           className="flow-node__description"
           onCommit={(description) => change({ description })}
         />
         {kind === 'decision' && (
-          <section className="node-section" aria-label="Decision outcomes">
-            <div className="node-section__label">Choose a route</div>
+          <section className="node-section" aria-label={t('Decision outcomes')}>
+            <div className="node-section__label">{t('Choose a route')}</div>
             {outcomes.map((outcome) => {
               const connected = edges.some(
                 (edge) =>
@@ -241,8 +251,8 @@ export function StyledNode({
                 <div className="outcome-row" key={outcome.id}>
                   <InlineText
                     value={outcome.label}
-                    label="Outcome label"
-                    placeholder="Outcome…"
+                    label={t('Outcome label')}
+                    placeholder={t('Outcome…')}
                     onCommit={(label) =>
                       change({
                         outcomes: outcomes.map((item) =>
@@ -255,11 +265,13 @@ export function StyledNode({
                   />
                   <button
                     className="node-icon-button"
-                    aria-label={`Remove outcome ${outcome.label}`}
+                    aria-label={t('Remove outcome {name}', {
+                      name: outcome.label,
+                    })}
                     title={
                       connected
-                        ? 'Disconnect this route before removing it'
-                        : 'Remove outcome'
+                        ? t('Disconnect this route before removing it')
+                        : t('Remove outcome')
                     }
                     disabled={connected || outcomes.length <= 2}
                     onClick={() =>
@@ -276,7 +288,9 @@ export function StyledNode({
                     id={outcome.id}
                     type="source"
                     position={Position.Right}
-                    aria-label={`Connect ${outcome.label} route`}
+                    aria-label={t('Connect {name} route', {
+                      name: outcome.label,
+                    })}
                   />
                 </div>
               )
@@ -287,33 +301,39 @@ export function StyledNode({
                 change({
                   outcomes: [
                     ...outcomes,
-                    { id: crypto.randomUUID(), label: 'Another route' },
+                    { id: crypto.randomUUID(), label: t('Another route') },
                   ],
                 })
               }
             >
-              + Add outcome
+              {t('+ Add outcome')}
             </button>
           </section>
         )}
         {kind === 'checkpoint' && (
-          <section className="node-section" aria-label="Readiness checklist">
+          <section
+            className="node-section"
+            aria-label={t('Readiness checklist')}
+          >
             <div
               className={`readiness ${checkpointReady(data) ? 'is-ready' : ''}`}
               role="status"
             >
-              {criteria.filter((item) => item.done).length} of {criteria.length}{' '}
-              ready ·{' '}
-              {checkpointReady(data) ? 'Ready to continue' : 'Not ready'}
+              {t('{done} of {total} ready', {
+                done: criteria.filter((item) => item.done).length,
+                total: criteria.length,
+              })}{' '}
+              ·{' '}
+              {checkpointReady(data) ? t('Ready to continue') : t('Not ready')}
             </div>
             <p className="node-hint">
-              Check each item when you have verified it.
+              {t('Check each item when you have verified it.')}
             </p>
             {criteria.map((item) => (
               <div className="criterion-row" key={item.id}>
                 <input
                   type="checkbox"
-                  aria-label={`Ready: ${item.label}`}
+                  aria-label={t('Ready: {name}', { name: item.label })}
                   checked={item.done}
                   onChange={(event) =>
                     change({
@@ -327,8 +347,8 @@ export function StyledNode({
                 />
                 <InlineText
                   value={item.label}
-                  label="Criterion"
-                  placeholder="What must be ready?"
+                  label={t('Criterion')}
+                  placeholder={t('What must be ready?')}
                   onCommit={(label) =>
                     change({
                       criteria: criteria.map((criterion) =>
@@ -341,7 +361,9 @@ export function StyledNode({
                 />
                 <button
                   className="node-icon-button"
-                  aria-label={`Remove criterion ${item.label}`}
+                  aria-label={t('Remove criterion {name}', {
+                    name: item.label,
+                  })}
                   onClick={() =>
                     change({
                       criteria: criteria.filter(
@@ -362,21 +384,21 @@ export function StyledNode({
                     ...criteria,
                     {
                       id: crypto.randomUUID(),
-                      label: 'New criterion',
+                      label: t('New criterion'),
                       done: false,
                     },
                   ],
                 })
               }
             >
-              + Add criterion
+              {t('+ Add criterion')}
             </button>
           </section>
         )}
         {kind === 'linked-flow' && (
-          <section className="node-section" aria-label="Linked flow">
+          <section className="node-section" aria-label={t('Linked flow')}>
             <label className="node-section__label" htmlFor={`linked-${id}`}>
-              Detailed process
+              {t('Detailed process')}
             </label>
             <select
               id={`linked-${id}`}
@@ -385,10 +407,10 @@ export function StyledNode({
                 change({ linkedBoardId: event.target.value || undefined })
               }
             >
-              <option value="">Choose a board…</option>
+              <option value="">{t('Choose a board…')}</option>
               {data.linkedBoardId && !linkedBoard && (
                 <option value={data.linkedBoardId}>
-                  Board unavailable — choose another
+                  {t('Board unavailable — choose another')}
                 </option>
               )}
               {navigation.boards
@@ -402,12 +424,17 @@ export function StyledNode({
             {linkedBoard && (
               <>
                 <p className="node-hint">
-                  {linkedBoard.document.nodes.length} nodes ·{' '}
+                  {t('{count} nodes', {
+                    count: linkedBoard.document.nodes.length,
+                  })}{' '}
+                  ·{' '}
                   {entry
-                    ? `Starts at ${entry.data.label || 'an untitled step'}`
+                    ? t('Starts at {name}', {
+                        name: entry.data.label || t('an untitled step'),
+                      })
                     : linkedBoard.document.nodes.length
-                      ? 'No entry step'
-                      : 'Empty flow'}
+                      ? t('No entry step')
+                      : t('Empty flow')}
                 </p>
                 <button
                   className="node-open-button"
@@ -416,7 +443,7 @@ export function StyledNode({
                     void navigate(() => navigation.onOpen!(linkedBoard.id))
                   }
                 >
-                  Open {linkedBoard.name} ↗
+                  {t('Open {name} ↗', { name: linkedBoard.name })}
                 </button>
               </>
             )}
@@ -426,18 +453,20 @@ export function StyledNode({
                 disabled={busy}
                 onClick={() =>
                   void navigate(() =>
-                    navigation.onCreate!(id, data.label || 'Untitled flow'),
+                    navigation.onCreate!(id, data.label || t('Untitled flow')),
                   )
                 }
               >
-                + Create a new flow
+                {t('+ Create a new flow')}
               </button>
             )}
-            {error && <p role="alert">{error}</p>}
+            {error && <p role="alert">{t(error)}</p>}
           </section>
         )}
         {kind === 'note' && (
-          <p className="node-hint">Connect to a step to attach this note.</p>
+          <p className="node-hint">
+            {t('Connect to a step to attach this note.')}
+          </p>
         )}
       </div>
       {(kind !== 'decision' || legacyOutput) && (
@@ -445,7 +474,7 @@ export function StyledNode({
           type="source"
           position={Position.Bottom}
           aria-label={
-            kind === 'note' ? 'Attach to a step' : 'Connect next step'
+            kind === 'note' ? t('Attach to a step') : t('Connect next step')
           }
         />
       )}

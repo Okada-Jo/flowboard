@@ -1,10 +1,13 @@
+import { useTranslation } from '../i18n/i18n'
 import { setThemePreference, useThemePreference } from './theme'
 
 export function ThemeToggle() {
+  const { t } = useTranslation()
+
   const preference = useThemePreference()
 
   return (
-    <div className="theme-toggle" role="group" aria-label="Color theme">
+    <div className="theme-toggle" role="group" aria-label={t('Color theme')}>
       {(['light', 'dark', 'system'] as const).map((theme) => (
         <button
           key={theme}
@@ -12,7 +15,7 @@ export function ThemeToggle() {
           aria-pressed={preference === theme}
           onClick={() => setThemePreference(theme)}
         >
-          {theme[0].toUpperCase() + theme.slice(1)}
+          {t(theme[0].toUpperCase() + theme.slice(1))}
         </button>
       ))}
     </div>

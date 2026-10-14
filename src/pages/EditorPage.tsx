@@ -1,3 +1,5 @@
+import { LanguageToggle } from '../i18n/LanguageToggle'
+import { useTranslation } from '../i18n/i18n'
 import { ThemeToggle } from '../theme/ThemeToggle'
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
@@ -36,6 +38,8 @@ export function EditorPage() {
 }
 
 function BoardEditor({ boardId }: { boardId: string }) {
+  const { t } = useTranslation()
+
   const dispatch = useAppDispatch()
   const store = useStore<RootState>()
   const navigate = useNavigate()
@@ -88,7 +92,7 @@ function BoardEditor({ boardId }: { boardId: string }) {
         trail:
           existing >= 0
             ? trail.slice(0, existing)
-            : [...trail, { id: boardId, name: board?.name ?? 'Board' }],
+            : [...trail, { id: boardId, name: board?.name ?? t('Board') }],
       },
     })
   }
@@ -106,7 +110,7 @@ function BoardEditor({ boardId }: { boardId: string }) {
       const all = await listBoards()
       downloadFlowboardFile(
         createFlowboardFile(
-          board?.name ?? 'Board',
+          board?.name ?? t('Board'),
           { nodes, edges },
           { id: boardId, boards: all },
         ),
@@ -126,7 +130,7 @@ function BoardEditor({ boardId }: { boardId: string }) {
   if (loading)
     return (
       <main className="flex h-screen items-center justify-center">
-        Loading board…
+        {t('Loading board…')}
       </main>
     )
   return (
@@ -138,7 +142,7 @@ function BoardEditor({ boardId }: { boardId: string }) {
           </span>{' '}
           Flowboard
         </button>
-        <nav aria-label="Flow navigation" className="flow-breadcrumbs">
+        <nav aria-label={t('Flow navigation')} className="flow-breadcrumbs">
           {trail.map((item) => (
             <span key={item.id}>
               <button onClick={() => navigateSafely(item.id)}>
@@ -147,22 +151,23 @@ function BoardEditor({ boardId }: { boardId: string }) {
               <span aria-hidden="true"> / </span>
             </span>
           ))}
-          <span aria-current="page">{board?.name ?? 'Board not found'}</span>
+          <span aria-current="page">{board?.name ?? t('Board not found')}</span>
         </nav>
         <div className="ml-auto flex shrink-0 items-center gap-3">
+          <LanguageToggle />
           <ThemeToggle />
           <button
             onClick={() => void exportBoard()}
             disabled={!board}
             className="secondary-button"
           >
-            Export
+            {t('Export')}
           </button>
         </div>
       </header>
       {(error || saveError) && (
         <div role="alert" className="editor-error">
-          {error || saveError}
+          {t(error || saveError)}
         </div>
       )}
       <div className="editor-body">
@@ -178,7 +183,7 @@ function BoardEditor({ boardId }: { boardId: string }) {
           />
         ) : (
           <div className="flex h-full items-center justify-center">
-            Board not found. Return to Flowboard to choose another board.
+            {t('Board not found. Return to Flowboard to choose another board.')}
           </div>
         )}
       </div>

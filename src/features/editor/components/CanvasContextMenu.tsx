@@ -1,3 +1,4 @@
+import { useTranslation } from '../../../i18n/i18n'
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 
@@ -30,6 +31,8 @@ export function CanvasContextMenu({
   onRename,
   onSelect,
 }: Props) {
+  const { t } = useTranslation()
+
   const menuRef = useRef<HTMLDivElement>(null)
   const previousFocusRef = useRef<HTMLElement | null>(null)
 
@@ -73,7 +76,7 @@ export function CanvasContextMenu({
     <div
       ref={menuRef}
       role="menu"
-      aria-label={node ? 'Node options' : 'Board options'}
+      aria-label={node ? t('Node options') : t('Board options')}
       className="canvas-context-menu"
       style={{ left: x, top: y }}
       onContextMenu={(event) => event.preventDefault()}
@@ -116,7 +119,7 @@ export function CanvasContextMenu({
             className="tool-button"
             onClick={onRename}
           >
-            Edit text
+            {t('Edit text')}
           </button>
           <button
             type="button"
@@ -126,10 +129,10 @@ export function CanvasContextMenu({
             disabled={node.selected}
             onClick={onSelect}
           >
-            {node.selected ? 'Already selected' : 'Add to selection'}
+            {node.selected ? t('Already selected') : t('Add to selection')}
           </button>
           <div className="context-menu-divider" role="separator" />
-          <div className="context-menu-heading">Change type</div>
+          <div className="context-menu-heading">{t('Change type')}</div>
         </>
       )}
       {items.map((item) => (
@@ -141,13 +144,13 @@ export function CanvasContextMenu({
           tabIndex={-1}
           className="tool-button"
           onClick={() =>
-            node ? onTypeChange(item.type) : onAdd(item.type, item.label)
+            node ? onTypeChange(item.type) : onAdd(item.type, t(item.label))
           }
         >
           <span className="tool-symbol" aria-hidden="true">
             {item.symbol}
           </span>
-          {node ? item.name : `Add ${item.name}`}
+          {node ? item.name : `Add ${t(item.name)}`}
           {node?.type === item.type && <span aria-hidden="true">✓</span>}
         </button>
       ))}
@@ -160,7 +163,7 @@ export function CanvasContextMenu({
             className="tool-button"
             onClick={onExport}
           >
-            Export board
+            {t('Export board')}
           </button>
         </div>
       )}
